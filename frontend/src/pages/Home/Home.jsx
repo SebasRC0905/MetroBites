@@ -78,7 +78,6 @@ const filteredProducts =
 
         <div className="cart-total">
           <div className="user-avatar" />
-
           <span>{user?.nombre?.split(" ")[0]}</span>
 
           <div onClick={() => navigate("/cart")}>🛒 ${total.toFixed(2)}</div>

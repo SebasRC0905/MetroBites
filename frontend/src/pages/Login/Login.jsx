@@ -1,121 +1,81 @@
-import {
-    useState
-} from 'react';
+import { useState } from "react";
 
-import {
-    useNavigate
-} from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 
-import authService
-from '../../services/authService';
+import authService from "../../services/authService";
 
-import {
-    useAuth
-} from '../../context/AuthContext';
-
+import { useAuth } from "../../context/AuthContext";
+import "./Login.css";
 function Login() {
+  const navigate = useNavigate();
 
-    const navigate =
-        useNavigate();
+  const { login } = useAuth();
 
-    const {
-        login
-    } = useAuth();
+  const [correo, setCorreo] = useState("");
 
-    const [correo, setCorreo] =
-        useState('');
+  const [password, setPassword] = useState("");
 
-    const [password, setPassword] =
-        useState('');
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-    const handleSubmit =
-        async (e) => {
+    try {
+      const response = await authService.login(correo, password);
 
-        e.preventDefault();
+      login(response.token, response.usuario);
 
-        try {
+      if (response.usuario.rol === "admin") {
+        navigate("/admin/productos");
+      } else {
+        navigate("/home");
+      }
+    } catch (error) {
+      console.error(error);
 
-            const response =
-                await authService.login(
-                    correo,
-                    password
-                );
+      alert("Credenciales incorrectas");
+    }
+  };
 
-            login(
-                response.token,
-                response.usuario
-            );
+  return (
+    <div className="login-container">
+      <div className="login-left">
+        <h1>🍽 MetroBites</h1>
 
-            navigate(
-                '/home'
-            );
+        <p>
+          Pide desde tu salón, recoge sin filas y disfruta tu comida favorita.
+        </p>
+      </div>
 
-        } catch (error) {
+      <div className="login-right">
+        <div className="login-card">
+          <h2>Bienvenido</h2>
 
-            console.error(error);
+          <p>Inicia sesión para continuar</p>
 
-            alert(
-                'Credenciales incorrectas'
-            );
+          <form onSubmit={handleSubmit}>
+            <input
+              className="login-input"
+              type="email"
+              placeholder="Correo institucional"
+              value={correo}
+              onChange={(e) => setCorreo(e.target.value)}
+            />
 
-        }
+            <input
+              className="login-input"
+              type="password"
+              placeholder="Contraseña"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
 
-    };
-
-    return (
-
-        <div>
-
-            <h1>
-                MetroBites Login
-            </h1>
-
-            <form
-                onSubmit={
-                    handleSubmit
-                }
-            >
-
-                <input
-                    type="email"
-                    placeholder="Correo"
-                    value={correo}
-                    onChange={(e) =>
-                        setCorreo(
-                            e.target.value
-                        )
-                    }
-                />
-
-                <br />
-                <br />
-
-                <input
-                    type="password"
-                    placeholder="Contraseña"
-                    value={password}
-                    onChange={(e) =>
-                        setPassword(
-                            e.target.value
-                        )
-                    }
-                />
-
-                <br />
-                <br />
-
-                <button
-                    type="submit"
-                >
-                    Iniciar sesión
-                </button>
-
-            </form>
-
+            <button type="submit" className="login-button">
+              Iniciar Sesión
+            </button>
+          </form>
         </div>
-
-    );
-
+      </div>
+    </div>
+  );
 }
 
 export default Login;

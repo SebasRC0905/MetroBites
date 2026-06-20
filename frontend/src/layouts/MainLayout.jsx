@@ -6,13 +6,10 @@ import { useAuth } from "../context/AuthContext";
 function MainLayout() {
   const { user, logout } = useAuth();
 
-  const firstName =
-    user?.nombre?.split(" ")[0] || "";
+  const firstName = user?.nombre?.split(" ")[0] || "";
 
-  const initial =
-    firstName.charAt(0).toUpperCase();
+  const initial = firstName.charAt(0).toUpperCase();
   return (
-    
     <div className="layout">
       <aside className="sidebar">
         <div className="logo">🍽 MetroBites</div>
@@ -25,18 +22,36 @@ function MainLayout() {
           <p>{user?.carrera}</p>
         </div>
 
-        <div className="sidebar-title">TU CUENTA</div>
+        <div className="sidebar-title">CATEGORÍAS</div>
 
         <NavLink to="/home" className="menu-item">
-          🏠 Menú Principal
+          🔥 Populares
         </NavLink>
 
+        <NavLink to="/home" className="menu-item">
+          ☕ Desayunos
+        </NavLink>
+
+        <NavLink to="/home" className="menu-item">
+          🍽 Comidas
+        </NavLink>
+
+        <NavLink to="/home" className="menu-item">
+          🥤 Bebidas
+        </NavLink>
+
+        <NavLink to="/home" className="menu-item">
+          🍟 Snacks
+        </NavLink>
+
+        <hr />
+
         <NavLink to="/profile" className="menu-item">
-          👤 Perfil y Salud
+          👤 Perfil
         </NavLink>
 
         <NavLink to="/historial" className="menu-item">
-          📜 Mis Pedidos
+          📜 Pedidos
         </NavLink>
 
         <button className="logout-button" onClick={logout}>
@@ -45,14 +60,6 @@ function MainLayout() {
       </aside>
 
       <main className="main-content">
-        <header className="header">
-          <h3>Cafetería UPMH</h3>
-
-          <div className="user-info">
-            <div className="avatar" />
-          </div>
-        </header>
-
         <div className="page-content">
           <Outlet />
         </div>
