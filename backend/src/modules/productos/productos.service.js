@@ -231,17 +231,19 @@ async () => {
     const [rows] =
         await pool.query(`
             SELECT
-                p.id,
-                p.nombre,
-                p.descripcion,
-                p.precio_base,
-                p.stock,
-                p.disponible,
-                c.nombre AS categoria
-            FROM productos p
-            INNER JOIN categorias c
-                ON p.categoria_id = c.id
-            ORDER BY p.nombre
+            p.id,
+            p.categoria_id,
+            p.nombre,
+            p.descripcion,
+            p.precio_base,
+            p.stock,
+            p.url_imagen,
+            p.disponible,
+            c.nombre AS categoria
+        FROM productos p
+        INNER JOIN categorias c
+            ON p.categoria_id = c.id
+        ORDER BY p.nombre
         `);
 
     return rows;

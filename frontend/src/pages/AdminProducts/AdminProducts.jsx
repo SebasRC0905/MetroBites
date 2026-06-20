@@ -1,11 +1,15 @@
 import { useEffect, useState } from "react";
 
 import adminProductService from "../../services/adminProductService";
+import uploadService from "../../services/uploadService";
 
 import "./AdminProducts.css";
 import categoryService from "../../services/categoryService";
 
 function AdminProducts() {
+  const [isEditing, setIsEditing] = useState(false);
+
+  const [editingProduct, setEditingProduct] = useState(null);
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
 
@@ -19,6 +23,7 @@ function AdminProducts() {
     stock: "",
     url_imagen: "",
   });
+  const [selectedFile, setSelectedFile] = useState(null);
 
   useEffect(() => {
     const loadProducts = async () => {
@@ -45,11 +50,19 @@ function AdminProducts() {
   }, []);
   const handleCreateProduct = async () => {
     try {
+      let imageUrl = "";
+
+      if (selectedFile) {
+        const uploadResponse = await uploadService.uploadImage(selectedFile);
+
+        imageUrl = uploadResponse.imageUrl;
+      }
       await adminProductService.createProduct({
         ...formData,
         categoria_id: Number(formData.categoria_id),
         precio_base: Number(formData.precio_base),
         stock: Number(formData.stock),
+        url_imagen: imageUrl,
       });
 
       const response = await adminProductService.getProductsAdmin();
@@ -64,8 +77,8 @@ function AdminProducts() {
         descripcion: "",
         precio_base: "",
         stock: "",
-        url_imagen: "",
       });
+      setSelectedFile(null);
 
       alert("Producto creado correctamente");
     } catch (error) {
@@ -73,6 +86,73 @@ function AdminProducts() {
 
       alert("Error al crear producto");
     }
+  };
+  const handleUpdateProduct = async () => {
+    try {
+      let imageUrl = formData.url_imagen;
+
+      if (selectedFile) {
+        const uploadResponse = await uploadService.uploadImage(selectedFile);
+
+        imageUrl = uploadResponse.imageUrl;
+      }
+
+      await adminProductService.updateProduct(editingProduct.id, {
+        ...formData,
+        categoria_id: Number(formData.categoria_id),
+        precio_base: Number(formData.precio_base),
+        stock: Number(formData.stock),
+        url_imagen: imageUrl,
+      });
+
+      const response = await adminProductService.getProductsAdmin();
+
+      setProducts(response.data);
+
+      setShowForm(false);
+
+      setIsEditing(false);
+
+      setEditingProduct(null);
+
+      alert("Producto actualizado");
+    } catch (error) {
+      console.error(error);
+
+      alert("Error al actualizar producto");
+    }
+  };
+  const handleToggleAvailability = async (product) => {
+    try {
+      await adminProductService.toggleAvailability(
+        product.id,
+        !product.disponible,
+      );
+
+      const response = await adminProductService.getProductsAdmin();
+
+      setProducts(response.data);
+    } catch (error) {
+      console.error(error);
+
+      alert("Error al actualizar producto");
+    }
+  };
+  const handleEditProduct = (product) => {
+    setIsEditing(true);
+
+    setEditingProduct(product);
+
+    setShowForm(true);
+
+    setFormData({
+      categoria_id: product.categoria_id,
+      nombre: product.nombre,
+      descripcion: product.descripcion,
+      precio_base: product.precio_base,
+      stock: product.stock,
+      url_imagen: product.url_imagen || "",
+    });
   };
   return (
     <div className="admin-products">
@@ -180,22 +260,19 @@ function AdminProducts() {
           <br />
 
           <input
-            type="text"
-            placeholder="URL Imagen"
-            value={formData.url_imagen}
-            onChange={(e) =>
-              setFormData({
-                ...formData,
-                url_imagen: e.target.value,
-              })
-            }
+            type="file"
+            accept="image/*"
+            onChange={(e) => setSelectedFile(e.target.files[0])}
           />
 
           <br />
           <br />
 
-          <button className="toggle-btn" onClick={handleCreateProduct}>
-            Guardar Producto
+          <button
+            className="toggle-btn"
+            onClick={isEditing ? handleUpdateProduct : handleCreateProduct}
+          >
+            {isEditing ? "Actualizar Producto" : "Guardar Producto"}
           </button>
         </div>
       )}
@@ -222,9 +299,17 @@ function AdminProducts() {
             </div>
 
             <div className="admin-actions">
-              <button className="edit-btn">✏ Editar</button>
+              <button
+                className="edit-btn"
+                onClick={() => handleEditProduct(product)}
+              >
+                ✏ Editar
+              </button>
 
-              <button className="toggle-btn">
+              <button
+                className="toggle-btn"
+                onClick={() => handleToggleAvailability(product)}
+              >
                 {product.disponible ? "Desactivar" : "Activar"}
               </button>
             </div>
