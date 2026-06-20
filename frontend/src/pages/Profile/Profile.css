@@ -1,0 +1,98 @@
+.profile-container {
+
+    max-width: 800px;
+
+    margin: auto;
+
+}
+
+.profile-card {
+
+    background: white;
+
+    padding: 30px;
+
+    border-radius: 24px;
+
+    box-shadow:
+        0 4px 20px
+        rgba(
+            0,
+            0,
+            0,
+            0.08
+        );
+
+}
+
+.profile-avatar {
+
+    width: 90px;
+
+    height: 90px;
+
+    border-radius: 50%;
+
+    background: #5B21B6;
+
+    color: white;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    font-size: 36px;
+
+    font-weight: bold;
+
+    margin-bottom: 20px;
+
+}
+
+.profile-info {
+
+    margin-top: 20px;
+
+}
+
+.profile-info p {
+
+    margin-bottom: 12px;
+
+}
+
+.spicy-section {
+
+    margin-top: 30px;
+
+}
+
+.spicy-section label {
+
+    display: block;
+
+    margin-bottom: 10px;
+
+}
+
+.save-button {
+
+    margin-top: 25px;
+
+    border: none;
+
+    background: #5B21B6;
+
+    color: white;
+
+    padding: 14px 22px;
+
+    border-radius: 12px;
+
+    cursor: pointer;
+
+    font-size: 16px;
+
+}
