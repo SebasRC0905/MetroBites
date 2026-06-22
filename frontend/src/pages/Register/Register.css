@@ -213,3 +213,22 @@
     left: -60px;
 
 }
+.terms-container {
+
+    margin-bottom: 20px;
+
+    font-size: 14px;
+
+    color: #6B7280;
+
+}
+
+.terms-container label {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+}
