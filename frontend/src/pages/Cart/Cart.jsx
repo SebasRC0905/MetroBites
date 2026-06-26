@@ -23,7 +23,7 @@ function Cart() {
       </div>
     );
   }
-
+  console.log(items);
   return (
     <div className="cart-container">
       <div className="cart-items">
@@ -38,7 +38,7 @@ function Cart() {
             <div className="cart-left">
             <div className="cart-image">
               {item.url_imagen ? (
-                <img src={item.url_imagen} alt={item.nombre} />
+                <img src={`http://localhost:3000${item.url_imagen}`} alt={item.nombre} />
               ) : (
                 <span>🍽</span>
               )}

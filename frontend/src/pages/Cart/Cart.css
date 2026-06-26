@@ -83,6 +83,7 @@
 }
 
 .summary-card {
+  margin-top: 88px;
   flex: 1;
   border: 2px solid #f3f4f6;
   background: white;
@@ -92,16 +93,15 @@
   padding: 25px;
 
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-  .summary-card h2 {
-    color: #5b21b6;
-
-    margin-top: 0;
-  }
   position: sticky;
 
   top: 20px;
 }
+.summary-card h2 {
+    color: #5b21b6;
 
+    margin-top: 0;
+  }
 .checkout-btn {
   width: 100%;
 

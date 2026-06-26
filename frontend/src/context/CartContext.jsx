@@ -19,6 +19,8 @@ export const CartProvider = ({ children }) => {
       nombre: product.nombre,
 
       precio_base: Number(product.precio_base),
+      
+      url_imagen: product.url_imagen,
 
       cantidad: quantity,
 
@@ -88,7 +90,7 @@ export const CartProvider = ({ children }) => {
   };
 
   const total = items.reduce((acc, item) => acc + item.subtotal, 0);
-
+  console.log(items);
   return (
     <CartContext.Provider
       value={{
