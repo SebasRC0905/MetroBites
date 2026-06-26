@@ -11,7 +11,6 @@ import pedidoService from "../../services/pedidoService";
 import "./Checkout.css";
 
 function Checkout() {
-
   const navigate = useNavigate();
 
   const { items, total, clearCart } = useCart();
@@ -20,244 +19,141 @@ function Checkout() {
 
   const [horarioId, setHorarioId] = useState("");
 
-  const [metodoPago, setMetodoPago] =
-    useState("efectivo");
+  const [metodoPago, setMetodoPago] = useState("efectivo");
 
   useEffect(() => {
-
     const loadHorarios = async () => {
-
       try {
-
-        const response =
-          await horarioService.getHorarios();
+        const response = await horarioService.getHorarios();
 
         setHorarios(response.data);
-
       } catch (error) {
-
         console.error(error);
-
       }
-
     };
 
     loadHorarios();
-
   }, []);
 
   const handleCheckout = async () => {
-
     if (!horarioId) {
-
-      alert(
-        "Selecciona un horario"
-      );
+      alert("Selecciona un horario");
 
       return;
-
     }
 
     try {
+      const productos = items.map((item) => ({
+        producto_id: item.producto_id,
 
-      const productos =
-        items.map(item => ({
+        cantidad: item.cantidad,
 
-          producto_id:
-            item.producto_id,
+        personalizaciones: item.personalizaciones.map((p) => p.id),
+      }));
 
-          cantidad:
-            item.cantidad,
+      const response = await pedidoService.createOrder({
+        horario_id: Number(horarioId),
 
-          personalizaciones:
-            item.personalizaciones.map(
-              p => p.id
-            )
+        metodo_pago: metodoPago,
 
-        }));
-
-      const response =
-        await pedidoService.createOrder({
-
-          horario_id:
-            Number(horarioId),
-
-          metodo_pago:
-            metodoPago,
-
-          productos
-
-        });
+        productos,
+      });
 
       clearCart();
 
-      navigate(
-        `/order-status/${response.data.pedidoId}`
-      );
-
+      navigate(`/order-status/${response.data.pedidoId}`);
     } catch (error) {
-
       console.error(error);
 
-      alert(
-        "Error al crear pedido"
-      );
-
+      alert("Error al crear pedido");
     }
-
   };
 
   return (
-
     <div className="checkout-container">
-
       <div className="checkout-form">
+        <div className="checkout-title">
+          <h1>🧾 Confirmar Pedido</h1>
 
-        <h1>
-          Confirmar Pedido
-        </h1>
+          <p>Revisa la información antes de confirmar tu pedido.</p>
+        </div>
 
-        <h3>
-          Horario de recolección
-        </h3>
+        <div className="checkout-section">
+          <h3>📅 Horario de recolección</h3>
 
-        <select
-          className="checkout-select"
-          value={horarioId}
-          onChange={(e) =>
-            setHorarioId(
-              e.target.value
-            )
-          }
-        >
+          <select
+            className="checkout-select"
+            value={horarioId}
+            onChange={(e) => setHorarioId(e.target.value)}
+          >
+            <option value="">Selecciona horario</option>
 
-          <option value="">
-            Selecciona horario
-          </option>
+            {horarios.map((horario) => (
+              <option key={horario.id} value={horario.id}>
+                {horario.nombre}
+              </option>
+            ))}
+          </select>
+        </div>
 
-          {
+        <div className="checkout-section">
+          <h3>💳 Método de pago</h3>
 
-            horarios.map(
-              horario => (
+          <label className="payment-option">
+            <input
+              type="radio"
+              value="efectivo"
+              checked={metodoPago === "efectivo"}
+              onChange={(e) => setMetodoPago(e.target.value)}
+            />
 
-                <option
-                  key={horario.id}
-                  value={horario.id}
-                >
-                  {horario.nombre}
-                </option>
+            <span>Efectivo</span>
+          </label>
 
-              )
-            )
+          <label className="payment-option">
+            <input
+              type="radio"
+              value="tarjeta"
+              checked={metodoPago === "tarjeta"}
+              onChange={(e) => setMetodoPago(e.target.value)}
+            />
 
-          }
-
-        </select>
-
-        <h3>
-          Método de pago
-        </h3>
-
-        <label className="payment-option">
-
-          <input
-            type="radio"
-            value="efectivo"
-            checked={
-              metodoPago ===
-              "efectivo"
-            }
-            onChange={(e) =>
-              setMetodoPago(
-                e.target.value
-              )
-            }
-          />
-
-          Efectivo
-
-        </label>
-
-        <label className="payment-option">
-
-          <input
-            type="radio"
-            value="tarjeta"
-            checked={
-              metodoPago ===
-              "tarjeta"
-            }
-            onChange={(e) =>
-              setMetodoPago(
-                e.target.value
-              )
-            }
-          />
-
-          Tarjeta
-
-        </label>
-
+            <span>Tarjeta</span>
+          </label>
+        </div>
       </div>
 
       <div className="checkout-summary">
-
-        <h2>
-          Resumen
-        </h2>
+        <h2>Resumen del pedido</h2>
 
         <hr />
 
-        {
+        {items.map((item, index) => (
+          <div key={index} className="checkout-product">
+            <span>
+              {item.nombre}
+              {" x"}
+              {item.cantidad}
+            </span>
 
-          items.map(
-            (item, index) => (
-
-              <div
-                key={index}
-                className="checkout-product"
-              >
-
-                <span>
-                  {item.nombre}
-                  {" x"}
-                  {item.cantidad}
-                </span>
-
-                <span>
-                  $
-                  {item.subtotal.toFixed(2)}
-                </span>
-
-              </div>
-
-            )
-          )
-
-        }
+            <span>${item.subtotal.toFixed(2)}</span>
+          </div>
+        ))}
 
         <hr />
 
-        <h3>
-          Total:
-          {" "}
-          $
-          {total.toFixed(2)}
-        </h3>
+        <div className="checkout-total">
+          <span>Total</span>
 
-        <button
-          className="confirm-button"
-          onClick={handleCheckout}
-        >
+          <h1>${total.toFixed(2)}</h1>
+        </div>
+
+        <button className="confirm-button" onClick={handleCheckout}>
           Confirmar Pedido
         </button>
-
       </div>
-
     </div>
-
   );
-
 }
 
 export default Checkout;

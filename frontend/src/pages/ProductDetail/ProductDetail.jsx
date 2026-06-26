@@ -5,6 +5,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import productService from "../../services/productService";
 
 import { useCart } from "../../context/CartContext";
+import "./ProductDetail.css";
 
 function ProductDetail() {
   const { id } = useParams();
@@ -61,40 +62,81 @@ function ProductDetail() {
   }
 
   return (
-    <div
-      style={{
-        padding: "30px",
-      }}
-    >
-      <button onClick={() => navigate(-1)}>← Volver</button>
-      <h1>{product.nombre}</h1>
-      <p>{product.descripcion}</p>
-      <h2>${product.precio_base}</h2>
-      <hr />
-      <h3>Personalizaciones</h3>
-      {personalizaciones.map((item) => (
-        <div key={item.id}>
-          <label>
-            <input
-              type="checkbox"
-              checked={selectedOptions.some((option) => option.id === item.id)}
-              onChange={() => handleOptionChange(item)}
-            />
-            {item.nombre} (+$
-            {item.precio_adicional})
-          </label>
+    <div className="product-detail">
+      <button className="back-button" onClick={() => navigate(-1)}>
+        ← Regresar
+      </button>
+
+      <div className="product-card-detail">
+        <div className="product-image-large">
+          <img
+            src={`http://localhost:3000${product.url_imagen}`}
+            alt={product.nombre}
+          />
         </div>
-      ))}
-      <hr />
-      <h3>Cantidad</h3>
-      <button onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}>
-        -
-      </button>{" "}
-      {quantity}{" "}
-      <button onClick={() => setQuantity((prev) => prev + 1)}>+</button>
-      <br />
-      <br />
-      <button onClick={handleAddToCart}>Agregar al carrito</button>
+
+        <div className="product-info">
+          <span className="status">
+            {product.disponible ? "🟢 Disponible" : "🔴 Agotado"}
+          </span>
+
+          <h1>{product.nombre}</h1>
+
+          <p className="description">{product.descripcion}</p>
+
+          <h2 className="price">${product.precio_base}</h2>
+        </div>
+      </div>
+
+      <div className="options-card">
+        <h2>Personaliza tu pedido</h2>
+
+        {personalizaciones.map((item) => (
+          <label key={item.id} className="option-item">
+            <div>
+              <input
+                type="checkbox"
+                checked={selectedOptions.some(
+                  (option) => option.id === item.id,
+                )}
+                onChange={() => handleOptionChange(item)}
+              />
+
+              <span>{item.nombre}</span>
+            </div>
+
+            <strong>+${item.precio_adicional}</strong>
+          </label>
+        ))}
+      </div>
+
+      <div className="bottom-section">
+        <div className="quantity-card">
+          <h3>Cantidad</h3>
+
+          <div className="quantity-controls">
+            <button
+              className="quantity-btn"
+              onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
+            >
+              -
+            </button>
+
+            <span>{quantity}</span>
+
+            <button
+              className="quantity-btn"
+              onClick={() => setQuantity((prev) => prev + 1)}
+            >
+              +
+            </button>
+          </div>
+        </div>
+
+        <button className="add-cart-btn" onClick={handleAddToCart}>
+          Agregar al carrito
+        </button>
+      </div>
     </div>
   );
 }
