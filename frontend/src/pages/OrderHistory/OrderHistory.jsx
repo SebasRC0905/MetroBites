@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import historyService from "../../services/historyService";
-
+import "./OrderHistory.css";
 function OrderHistory() {
   const navigate = useNavigate();
 
@@ -24,37 +24,59 @@ function OrderHistory() {
   }, []);
 
   return (
-    <div
-      style={{
-        padding: "30px",
-      }}
-    >
-      <h1>Mis Pedidos</h1>
+    <div className="history-container">
+      <div className="history-header">
+        <h1>📜 Mis Pedidos</h1>
 
-      {orders.map((order) => (
-        <div
-          key={order.id}
-          style={{
-            border: "1px solid #ddd",
+        <p>Consulta el historial y estado de todos tus pedidos.</p>
+      </div>
 
-            padding: "15px",
+      {orders.length === 0 ? (
+        <div className="empty-history">
+          <h2>No tienes pedidos todavía</h2>
 
-            marginBottom: "15px",
+          <p>Cuando realices tu primer pedido aparecerá aquí.</p>
 
-            borderRadius: "10px",
-          }}
-        >
-          <h3>Orden #{order.id}</h3>
-
-          <p>Estado: {order.estado}</p>
-
-          <p>Total: ${order.total}</p>
-
-          <button onClick={() => navigate(`/order-status/${order.id}`)}>
-            Ver pedido
+          <button className="history-btn" onClick={() => navigate("/home")}>
+            Ir al menú
           </button>
         </div>
-      ))}
+      ) : (
+        <div className="history-grid">
+          {orders.map((order) => (
+            <div key={order.id} className="history-card">
+              <div className="history-top">
+                <h2>Pedido #{order.id}</h2>
+
+                <span className={`status ${order.estado.toLowerCase()}`}>
+                  {order.estado}
+                </span>
+              </div>
+
+              <div className="history-info">
+                <div>
+                  <span>Total</span>
+
+                  <strong>${Number(order.total).toFixed(2)}</strong>
+                </div>
+
+                <div>
+                  <span>Pedido</span>
+
+                  <strong>#{order.id}</strong>
+                </div>
+              </div>
+
+              <button
+                className="history-btn"
+                onClick={() => navigate(`/order-status/${order.id}`)}
+              >
+                Ver Detalles
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -1,0 +1,198 @@
+.history-container{
+
+    max-width:1200px;
+
+    margin:auto;
+
+}
+
+.history-header{
+
+    margin-bottom:35px;
+
+}
+
+.history-header h1{
+
+    margin:0;
+
+    color:#1F2937;
+
+}
+
+.history-header p{
+
+    color:#6B7280;
+
+    margin-top:10px;
+
+}
+
+.history-grid{
+
+    display:grid;
+
+    grid-template-columns:repeat(auto-fill,minmax(330px,1fr));
+
+    gap:25px;
+
+}
+
+.history-card{
+
+    background:white;
+
+    border-radius:24px;
+
+    padding:25px;
+
+    box-shadow:0 4px 18px rgba(0,0,0,.08);
+
+    transition:.25s;
+
+}
+
+.history-card:hover{
+
+    transform:translateY(-5px);
+
+}
+
+.history-top{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    margin-bottom:25px;
+
+}
+
+.history-top h2{
+
+    margin:0;
+
+    font-size:22px;
+
+}
+
+.history-info{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    margin-bottom:25px;
+
+}
+
+.history-info span{
+
+    display:block;
+
+    color:#6B7280;
+
+    margin-bottom:6px;
+
+}
+
+.history-info strong{
+
+    font-size:20px;
+
+    color:#1F2937;
+
+}
+
+.status{
+
+    padding:8px 16px;
+
+    border-radius:20px;
+
+    font-weight:700;
+
+    font-size:14px;
+
+}
+.status.preparando{
+
+    background:#FEF3C7;
+
+    color:#D97706;
+
+}
+
+.status.entregado{
+
+    background:#DCFCE7;
+
+    color:#15803D;
+
+}
+
+.status.cancelado{
+
+    background:#FEE2E2;
+
+    color:#DC2626;
+
+}
+
+.status.recibido{
+
+    background:#DBEAFE;
+
+    color:#2563EB;
+
+}
+.history-btn{
+
+    width:100%;
+
+    border:none;
+
+    background:#5B21B6;
+
+    color:white;
+
+    padding:15px;
+
+    border-radius:14px;
+
+    cursor:pointer;
+
+    font-weight:700;
+
+    transition:.25s;
+
+}
+
+.history-btn:hover{
+
+    transform:translateY(-2px);
+
+}
+.empty-history{
+
+    background:white;
+
+    border-radius:24px;
+
+    padding:60px;
+
+    text-align:center;
+
+    box-shadow:0 4px 18px rgba(0,0,0,.08);
+
+}
+
+.empty-history p{
+
+    color:#6B7280;
+
+    margin:20px 0;
+
+}

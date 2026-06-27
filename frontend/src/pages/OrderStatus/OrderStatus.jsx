@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
 import orderService from "../../services/orderService";
+import "./OrderStatus.css";
 
 function OrderStatus() {
   const { id } = useParams();
@@ -30,30 +31,73 @@ function OrderStatus() {
   }
 
   return (
-    <div
-      style={{
-        padding: "30px",
-      }}
-    >
-      <h1>¡Tu pedido fue recibido!</h1>
+    <div className="order-status-container">
+      <div className="success-card">
+        <div className="success-icon">✓</div>
 
-      <h2>Orden #{order.id}</h2>
+        <h1>¡Pedido Confirmado!</h1>
 
-      <p>Código: {order.codigo_qr}</p>
+        <p>Tu pedido fue recibido correctamente y ya está siendo preparado.</p>
+      </div>
 
-      <hr />
+      <div className="order-info-card">
+        <h2>Información del Pedido</h2>
 
-      <h3>Estado actual</h3>
+        <div className="info-row">
+          <span>No. Pedido</span>
+          <strong>#{order.id}</strong>
+        </div>
 
-      <h2>{order.estado}</h2>
+        <div className="info-row">
+          <span>Estado</span>
 
-      <hr />
+          <span className="status-badge">{order.estado}</span>
+        </div>
 
-      <h3>Total</h3>
+        <div className="info-row">
+          <span>Total</span>
 
-      <p>${order.total}</p>
+          <strong>${Number(order.total).toFixed(2)}</strong>
+        </div>
 
-      <button onClick={() => navigate("/home")}>Volver al Inicio</button>
+        <div className="info-row">
+          <span>Código</span>
+
+          <strong>{order.codigo_qr}</strong>
+        </div>
+      </div>
+
+      <div className="progress-card">
+        <h3>Estado del pedido</h3>
+
+        <div className="progress-bar">
+          <div className="progress-fill"></div>
+        </div>
+
+        <p>Tu pedido está siendo preparado por la cafetería.</p>
+      </div>
+
+      <div className="next-step-card">
+        <h3>¿Qué sigue?</h3>
+
+        <p>
+          Cuando el pedido esté listo podrás pasar a recogerlo en la cafetería
+          durante el horario seleccionado.
+        </p>
+
+        <div className="buttons">
+          <button
+            className="secondary-btn"
+            onClick={() => navigate("/historial")}
+          >
+            Ver Mis Pedidos
+          </button>
+
+          <button className="primary-btn" onClick={() => navigate("/home")}>
+            Seguir Comprando
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

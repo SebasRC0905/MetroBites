@@ -25,10 +25,14 @@ function Login() {
       login(response.token, response.usuario);
 
       if (response.usuario.rol === "admin") {
-        navigate("/admin/productos");
-      } else {
-        navigate("/home");
+        console.log("Navegando a /admin");
+
+        navigate("/admin");
+
+        return;
       }
+
+      navigate("/home");
     } catch (error) {
       console.error(error);
 
