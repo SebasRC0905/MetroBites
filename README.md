@@ -357,6 +357,7 @@ Solo compartir:
 # 👥 Equipo de Desarrollo
 
 - Sebastián Ruiz Cortés
+
 Proyecto académico desarrollado para la Universidad Politécnica Metropolitana de Hidalgo (UPMH).
 
 MetroBites busca optimizar el proceso de pedidos de alimentos permitiendo a los estudiantes realizar órdenes desde el aula y recogerlas en horarios establecidos.
