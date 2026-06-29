@@ -17,6 +17,10 @@ function ProductCard({ product }) {
       </div>
 
       <div className="product-body">
+        {product.categoria && (
+          <span className="product-category">{product.categoria}</span>
+        )}
+
         <h3 className="product-name">{product.nombre}</h3>
 
         <p className="product-description">{product.descripcion}</p>
@@ -25,7 +29,9 @@ function ProductCard({ product }) {
           <span className="product-price">${product.precio_base}</span>
 
           <button
+            type="button"
             className="product-button"
+            aria-label={`Ver ${product.nombre}`}
             onClick={() => navigate(`/producto/${product.id}`)}
           >
             +

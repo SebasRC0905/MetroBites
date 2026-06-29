@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 import historyService from "../../services/historyService";
 import "./OrderHistory.css";
+
 function OrderHistory() {
   const navigate = useNavigate();
 
@@ -26,7 +27,8 @@ function OrderHistory() {
   return (
     <div className="history-container">
       <div className="history-header">
-        <h1>📜 Mis Pedidos</h1>
+        <span className="eyebrow">Historial</span>
+        <h1>Mis pedidos</h1>
 
         <p>Consulta el historial y estado de todos tus pedidos.</p>
       </div>
@@ -37,7 +39,11 @@ function OrderHistory() {
 
           <p>Cuando realices tu primer pedido aparecerá aquí.</p>
 
-          <button className="history-btn" onClick={() => navigate("/home")}>
+          <button
+            type="button"
+            className="history-btn"
+            onClick={() => navigate("/home")}
+          >
             Ir al menú
           </button>
         </div>
@@ -48,7 +54,9 @@ function OrderHistory() {
               <div className="history-top">
                 <h2>Pedido #{order.id}</h2>
 
-                <span className={`status ${order.estado.toLowerCase()}`}>
+                <span
+                  className={`history-status ${order.estado.toLowerCase()}`}
+                >
                   {order.estado}
                 </span>
               </div>
@@ -68,10 +76,11 @@ function OrderHistory() {
               </div>
 
               <button
+                type="button"
                 className="history-btn"
                 onClick={() => navigate(`/order-status/${order.id}`)}
               >
-                Ver Detalles
+                Ver detalles
               </button>
             </div>
           ))}

@@ -6,6 +6,8 @@ import uploadService from "../../services/uploadService";
 import "./AdminProducts.css";
 import categoryService from "../../services/categoryService";
 
+const API_URL = "http://localhost:3000";
+
 function AdminProducts() {
   const [isEditing, setIsEditing] = useState(false);
 
@@ -156,157 +158,178 @@ function AdminProducts() {
   };
   return (
     <div className="admin-products">
-      <div className="admin-header">
+      <div className="admin-products-header">
         <div className="admin-title">
-          <h1>Administración de Productos</h1>
+          <span className="eyebrow">Catálogo</span>
+          <h1>Administración de productos</h1>
 
-          <p>Gestiona los productos disponibles en MetroBites</p>
+          <p>Gestiona los productos disponibles en MetroBites.</p>
         </div>
 
         <button
+          type="button"
           className="new-product-btn"
           onClick={() => setShowForm(!showForm)}
         >
-          ➕ Nuevo Producto
+          + Nuevo producto
         </button>
       </div>
       {showForm && (
-        <div
-          className="admin-product-card"
-          style={{
-            marginBottom: "30px",
-          }}
-        >
-          <h2>Nuevo Producto</h2>
+        <div className="admin-product-card product-form-card">
+          <div className="product-form-heading">
+            <h2>{isEditing ? "Editar producto" : "Nuevo producto"}</h2>
+            <span>Completa los datos del catálogo</span>
+          </div>
 
-          <select
-            value={formData.categoria_id}
-            onChange={(e) =>
-              setFormData({
-                ...formData,
-                categoria_id: e.target.value,
-              })
-            }
-          >
-            <option value="">Selecciona categoría</option>
+          <div className="admin-form-grid">
+            <label className="admin-field">
+              <span>Categoría</span>
+              <select
+                value={formData.categoria_id}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    categoria_id: e.target.value,
+                  })
+                }
+              >
+                <option value="">Selecciona categoría</option>
 
-            {categories.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.nombre}
-              </option>
-            ))}
-          </select>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.nombre}
+                  </option>
+                ))}
+              </select>
+            </label>
 
-          <br />
-          <br />
+            <label className="admin-field">
+              <span>Nombre</span>
+              <input
+                type="text"
+                placeholder="Nombre"
+                value={formData.nombre}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    nombre: e.target.value,
+                  })
+                }
+              />
+            </label>
 
-          <input
-            type="text"
-            placeholder="Nombre"
-            value={formData.nombre}
-            onChange={(e) =>
-              setFormData({
-                ...formData,
-                nombre: e.target.value,
-              })
-            }
-          />
+            <label className="admin-field full">
+              <span>Descripción</span>
+              <textarea
+                placeholder="Descripción"
+                value={formData.descripcion}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    descripcion: e.target.value,
+                  })
+                }
+              />
+            </label>
 
-          <br />
-          <br />
+            <label className="admin-field">
+              <span>Precio</span>
+              <input
+                type="number"
+                placeholder="Precio"
+                value={formData.precio_base}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    precio_base: e.target.value,
+                  })
+                }
+              />
+            </label>
 
-          <textarea
-            placeholder="Descripción"
-            value={formData.descripcion}
-            onChange={(e) =>
-              setFormData({
-                ...formData,
-                descripcion: e.target.value,
-              })
-            }
-          />
+            <label className="admin-field">
+              <span>Stock</span>
+              <input
+                type="number"
+                placeholder="Stock"
+                value={formData.stock}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    stock: e.target.value,
+                  })
+                }
+              />
+            </label>
 
-          <br />
-          <br />
-
-          <input
-            type="number"
-            placeholder="Precio"
-            value={formData.precio_base}
-            onChange={(e) =>
-              setFormData({
-                ...formData,
-                precio_base: e.target.value,
-              })
-            }
-          />
-
-          <br />
-          <br />
-
-          <input
-            type="number"
-            placeholder="Stock"
-            value={formData.stock}
-            onChange={(e) =>
-              setFormData({
-                ...formData,
-                stock: e.target.value,
-              })
-            }
-          />
-
-          <br />
-          <br />
-
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => setSelectedFile(e.target.files[0])}
-          />
-
-          <br />
-          <br />
+            <label className="admin-field full">
+              <span>Imagen</span>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setSelectedFile(e.target.files[0])}
+              />
+            </label>
+          </div>
 
           <button
-            className="toggle-btn"
+            type="button"
+            className="toggle-btn form-action"
             onClick={isEditing ? handleUpdateProduct : handleCreateProduct}
           >
-            {isEditing ? "Actualizar Producto" : "Guardar Producto"}
+            {isEditing ? "Actualizar producto" : "Guardar producto"}
           </button>
         </div>
       )}
       <div className="products-admin-grid">
         {products.map((product) => (
           <div key={product.id} className="admin-product-card">
+            <div className="admin-product-image">
+              {product.url_imagen ? (
+                <img src={`${API_URL}${product.url_imagen}`} alt={product.nombre} />
+              ) : (
+                <span>🍽</span>
+              )}
+            </div>
+
             <div className="admin-product-name">{product.nombre}</div>
 
             <div className="admin-product-category">{product.categoria}</div>
 
-            <div className="admin-product-price">${product.precio_base}</div>
+            <div className="admin-product-meta">
+              <div>
+                <span>Precio</span>
+                <strong>${product.precio_base}</strong>
+              </div>
 
-            <div className="admin-product-stock">Stock: {product.stock}</div>
+              <div>
+                <span>Stock</span>
+                <strong>{product.stock}</strong>
+              </div>
+            </div>
 
-            <div>
-              Estado:{" "}
+            <div className="admin-product-state">
+              Estado
               <span
                 className={
                   product.disponible ? "status-active" : "status-inactive"
                 }
               >
-                {product.disponible ? "🟢 Activo" : "🔴 Inactivo"}
+                {product.disponible ? "Activo" : "Inactivo"}
               </span>
             </div>
 
             <div className="admin-actions">
               <button
+                type="button"
                 className="edit-btn"
                 onClick={() => handleEditProduct(product)}
               >
-                ✏ Editar
+                Editar
               </button>
 
               <button
+                type="button"
                 className="toggle-btn"
                 onClick={() => handleToggleAvailability(product)}
               >

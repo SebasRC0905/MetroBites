@@ -1,135 +1,138 @@
 .product-card {
+  position: relative;
+  min-height: 430px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.94);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-sm);
+  transition:
+    transform 0.28s var(--ease),
+    box-shadow 0.28s var(--ease),
+    border-color 0.28s var(--ease);
+  animation: fadeUp 0.45s var(--ease) both;
+}
 
-    background: white;
-
-    border-radius: 24px;
-
-    overflow: hidden;
-
-    box-shadow:
-        0 4px 16px
-        rgba(
-            0,
-            0,
-            0,
-            0.08
-        );
-
-    transition: .25s;
-
-    cursor: pointer;
-
+.product-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(140deg, rgba(255, 255, 255, 0.24), transparent 42%);
+  opacity: 0;
+  transition: opacity 0.28s var(--ease);
 }
 
 .product-card:hover {
+  border-color: rgba(86, 55, 200, 0.18);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-6px);
+}
 
-    transform:
-        translateY(-4px);
-
+.product-card:hover::after {
+  opacity: 1;
 }
 
 .product-image {
-
-    height: 220px;
-
-    background: #ececec;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    overflow: hidden;
-
-    object-fit: cover;
-
-    border-radius: 12px;
-
+  position: relative;
+  height: 214px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  color: var(--muted);
+  background:
+    linear-gradient(135deg, rgba(86, 55, 200, 0.1), rgba(15, 143, 131, 0.1)),
+    var(--surface-muted);
 }
 
 .product-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s var(--ease), filter 0.5s var(--ease);
+}
 
-    width: 100%;
-
-    height: 100%;
-
-    object-fit: cover;
-
+.product-card:hover .product-image img {
+  filter: saturate(1.08) contrast(1.03);
+  transform: scale(1.06);
 }
 
 .product-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding: 18px;
+}
 
-    padding: 20px;
-
+.product-category {
+  width: fit-content;
+  min-height: 26px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 10px;
+  margin-bottom: 12px;
+  color: var(--mint);
+  background: var(--mint-soft);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
 }
 
 .product-name {
-
-    margin: 0;
-
-    color: #1F2937;
-
-    font-size: 20px;
-
-    font-weight: 700;
-
+  margin: 0;
+  color: var(--ink);
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.2;
 }
 
 .product-description {
-
-    color: #6B7280;
-
-    margin: 10px 0 20px;
-
-    min-height: 45px;
-
+  display: -webkit-box;
+  min-height: 52px;
+  margin: 10px 0 18px;
+  overflow: hidden;
+  color: var(--muted);
+  line-height: 1.45;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .product-footer {
-
-    display: flex;
-
-    justify-content: space-between;
-
-    align-items: center;
-
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: auto;
 }
 
 .product-price {
-
-    color: #5B21B6;
-
-    font-size: 24px;
-
-    font-weight: 700;
-
+  color: var(--brand);
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: 0;
 }
 
 .product-button {
-
-    width: 46px;
-
-    height: 46px;
-
-    border: none;
-
-    border-radius: 50%;
-
-    background: #FF8A65;
-
-    color: white;
-
-    font-size: 24px;
-
-    cursor: pointer;
-
-    transition: .2s;
-
+  width: 46px;
+  height: 46px;
+  flex: 0 0 auto;
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--accent), #ff9a67);
+  border: none;
+  border-radius: 50%;
+  box-shadow: 0 14px 24px rgba(255, 118, 88, 0.28);
+  font-size: 25px;
+  font-weight: 700;
+  line-height: 1;
+  transition:
+    transform 0.22s var(--ease),
+    box-shadow 0.22s var(--ease);
 }
 
 .product-button:hover {
-
-    transform: scale(1.1);
-
+  box-shadow: 0 18px 30px rgba(255, 118, 88, 0.34);
+  transform: translateY(-2px) scale(1.04);
 }

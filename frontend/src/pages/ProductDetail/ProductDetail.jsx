@@ -58,12 +58,12 @@ function ProductDetail() {
   };
 
   if (!product) {
-    return <p>Cargando...</p>;
+    return <p className="loading-text">Cargando...</p>;
   }
 
   return (
     <div className="product-detail">
-      <button className="back-button" onClick={() => navigate(-1)}>
+      <button type="button" className="back-button" onClick={() => navigate(-1)}>
         ← Regresar
       </button>
 
@@ -76,20 +76,32 @@ function ProductDetail() {
         </div>
 
         <div className="product-info">
-          <span className="status">
-            {product.disponible ? "🟢 Disponible" : "🔴 Agotado"}
+          <span
+            className={
+              product.disponible
+                ? "detail-status available"
+                : "detail-status unavailable"
+            }
+          >
+            {product.disponible ? "Disponible" : "Agotado"}
           </span>
 
           <h1>{product.nombre}</h1>
 
           <p className="description">{product.descripcion}</p>
 
-          <h2 className="price">${product.precio_base}</h2>
+          <div className="price-panel">
+            <span>Precio base</span>
+            <h2 className="price">${product.precio_base}</h2>
+          </div>
         </div>
       </div>
 
       <div className="options-card">
-        <h2>Personaliza tu pedido</h2>
+        <div className="options-heading">
+          <h2>Personaliza tu pedido</h2>
+          <span>{personalizaciones.length} opciones</span>
+        </div>
 
         {personalizaciones.map((item) => (
           <label key={item.id} className="option-item">
@@ -114,8 +126,9 @@ function ProductDetail() {
         <div className="quantity-card">
           <h3>Cantidad</h3>
 
-          <div className="quantity-controls">
+          <div className="detail-quantity-controls">
             <button
+              type="button"
               className="quantity-btn"
               onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
             >
@@ -125,6 +138,7 @@ function ProductDetail() {
             <span>{quantity}</span>
 
             <button
+              type="button"
               className="quantity-btn"
               onClick={() => setQuantity((prev) => prev + 1)}
             >
@@ -133,7 +147,7 @@ function ProductDetail() {
           </div>
         </div>
 
-        <button className="add-cart-btn" onClick={handleAddToCart}>
+        <button type="button" className="add-cart-btn" onClick={handleAddToCart}>
           Agregar al carrito
         </button>
       </div>

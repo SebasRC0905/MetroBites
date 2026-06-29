@@ -73,13 +73,17 @@ function Checkout() {
     <div className="checkout-container">
       <div className="checkout-form">
         <div className="checkout-title">
-          <h1>🧾 Confirmar Pedido</h1>
+          <span className="eyebrow">Último paso</span>
+          <h1>Confirmar pedido</h1>
 
           <p>Revisa la información antes de confirmar tu pedido.</p>
         </div>
 
         <div className="checkout-section">
-          <h3>📅 Horario de recolección</h3>
+          <div className="checkout-section-title">
+            <span>📅</span>
+            <h3>Horario de recolección</h3>
+          </div>
 
           <select
             className="checkout-select"
@@ -97,7 +101,10 @@ function Checkout() {
         </div>
 
         <div className="checkout-section">
-          <h3>💳 Método de pago</h3>
+          <div className="checkout-section-title">
+            <span>💳</span>
+            <h3>Método de pago</h3>
+          </div>
 
           <label className="payment-option">
             <input
@@ -124,9 +131,8 @@ function Checkout() {
       </div>
 
       <div className="checkout-summary">
-        <h2>Resumen del pedido</h2>
-
-        <hr />
+        <span className="eyebrow">Resumen</span>
+        <h2>Pedido</h2>
 
         {items.map((item, index) => (
           <div key={index} className="checkout-product">
@@ -136,11 +142,9 @@ function Checkout() {
               {item.cantidad}
             </span>
 
-            <span>${item.subtotal.toFixed(2)}</span>
+            <strong>${item.subtotal.toFixed(2)}</strong>
           </div>
         ))}
-
-        <hr />
 
         <div className="checkout-total">
           <span>Total</span>
@@ -148,8 +152,8 @@ function Checkout() {
           <h1>${total.toFixed(2)}</h1>
         </div>
 
-        <button className="confirm-button" onClick={handleCheckout}>
-          Confirmar Pedido
+        <button type="button" className="confirm-button" onClick={handleCheckout}>
+          Confirmar pedido
         </button>
       </div>
     </div>

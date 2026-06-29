@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+
 import authService from "../../services/authService";
-import { useNavigate } from "react-router-dom";
 
 import "./Register.css";
 
@@ -44,7 +44,7 @@ function Register() {
     }
 
     try {
-      const response = await authService.register({
+      await authService.register({
         nombre,
         matricula,
         correo,
@@ -64,21 +64,40 @@ function Register() {
   };
 
   return (
-    <div className="login-container">
+    <div className="login-container register-container">
       <div className="login-left">
-        <h1>🍽 MetroBites</h1>
+        <div className="login-brand">
+          <span className="login-brand-mark">🍽</span>
+          <span>MetroBites</span>
+        </div>
+
+        <h1>Tu cafetería universitaria, más cerca.</h1>
 
         <p>
           Únete a la cafetería inteligente de la UPMH y realiza tus pedidos
           desde cualquier salón.
         </p>
+
+        <div className="login-showcase" aria-hidden="true">
+          <div className="showcase-card main">
+            <span>Nuevo alumno</span>
+            <strong>Perfil listo</strong>
+          </div>
+
+          <div className="showcase-card accent">
+            <span>Preferencias</span>
+            <strong>Picante medio</strong>
+          </div>
+        </div>
       </div>
 
       <div className="login-right">
-        <div className="login-card">
-          <h2>Crear Cuenta</h2>
-
-          <p>Registra tus datos para comenzar</p>
+        <div className="login-card register-card">
+          <div className="login-card-heading">
+            <span className="eyebrow">Registro</span>
+            <h2>Crear cuenta</h2>
+            <p>Registra tus datos para comenzar</p>
+          </div>
 
           <form onSubmit={handleSubmit}>
             <input
@@ -109,7 +128,7 @@ function Register() {
               value={carrera}
               onChange={(e) => setCarrera(e.target.value)}
             >
-              <option value="">Programa Educativo</option>
+              <option value="">Programa educativo</option>
 
               {carreras.map((item) => (
                 <option key={item} value={item}>
@@ -139,7 +158,7 @@ function Register() {
                   checked={acceptTerms}
                   onChange={(e) => setAcceptTerms(e.target.checked)}
                 />
-                Acepto los términos y condiciones
+                <span>Acepto los términos y condiciones</span>
               </label>
             </div>
 

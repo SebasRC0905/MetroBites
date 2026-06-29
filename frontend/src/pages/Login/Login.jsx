@@ -1,12 +1,11 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
-
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import authService from "../../services/authService";
 
 import { useAuth } from "../../context/AuthContext";
 import "./Login.css";
+
 function Login() {
   const navigate = useNavigate();
 
@@ -43,18 +42,37 @@ function Login() {
   return (
     <div className="login-container">
       <div className="login-left">
-        <h1>🍽 MetroBites</h1>
+        <div className="login-brand">
+          <span className="login-brand-mark">🍽</span>
+          <span>MetroBites</span>
+        </div>
+
+        <h1>Comida lista cuando tú estés listo.</h1>
 
         <p>
           Pide desde tu salón, recoge sin filas y disfruta tu comida favorita.
         </p>
+
+        <div className="login-showcase" aria-hidden="true">
+          <div className="showcase-card main">
+            <span>Pedido express</span>
+            <strong>12 min</strong>
+          </div>
+
+          <div className="showcase-card accent">
+            <span>Favorito</span>
+            <strong>Cuernito + café</strong>
+          </div>
+        </div>
       </div>
 
       <div className="login-right">
         <div className="login-card">
-          <h2>Bienvenido</h2>
-
-          <p>Inicia sesión para continuar</p>
+          <div className="login-card-heading">
+            <span className="eyebrow">Acceso seguro</span>
+            <h2>Bienvenido</h2>
+            <p>Inicia sesión para continuar</p>
+          </div>
 
           <form onSubmit={handleSubmit}>
             <input
@@ -74,7 +92,7 @@ function Login() {
             />
 
             <button type="submit" className="login-button">
-              Iniciar Sesión
+              Iniciar sesión
             </button>
             <div className="register-link">
               <Link to="/register">¿No tienes cuenta? Regístrate</Link>

@@ -44,12 +44,15 @@ function Profile() {
   };
 
   if (!user) {
-    return <p>Cargando...</p>;
+    return <p className="loading-text">Cargando...</p>;
   }
 
   return (
     <div className="profile-container">
-      <h1>Mi Perfil</h1>
+      <div className="profile-header">
+        <span className="eyebrow">Cuenta</span>
+        <h1>Mi perfil</h1>
+      </div>
 
       <div className="profile-card">
         <div className="profile-grid">
@@ -70,7 +73,7 @@ function Profile() {
 
               <div className="stat-card">
                 <h3>3</h3>
-                <span>Cafés Gratis</span>
+                <span>Cafés gratis</span>
               </div>
             </div>
           </div>
@@ -79,7 +82,7 @@ function Profile() {
             <h2>Preferencias</h2>
 
             <div className="preference-card">
-              <h3>🌶 Nivel de Picante</h3>
+              <h3>🌶 Nivel de picante</h3>
 
               <div className="spicy-section">
                 <label>
@@ -89,7 +92,7 @@ function Profile() {
                     checked={tolerancia === "ninguno"}
                     onChange={(e) => setTolerancia(e.target.value)}
                   />
-                  Ninguno
+                  <span>Ninguno</span>
                 </label>
 
                 <label>
@@ -99,7 +102,7 @@ function Profile() {
                     checked={tolerancia === "medio"}
                     onChange={(e) => setTolerancia(e.target.value)}
                   />
-                  Medio
+                  <span>Medio</span>
                 </label>
 
                 <label>
@@ -109,7 +112,7 @@ function Profile() {
                     checked={tolerancia === "habanero"}
                     onChange={(e) => setTolerancia(e.target.value)}
                   />
-                  Habanero
+                  <span>Habanero</span>
                 </label>
               </div>
             </div>
@@ -119,21 +122,22 @@ function Profile() {
 
               <p>
                 <strong>Matrícula:</strong>
-                {user.matricula}
+                <span>{user.matricula}</span>
               </p>
 
               <p>
                 <strong>Correo:</strong>
-                {user.correo}
+                <span>{user.correo}</span>
               </p>
             </div>
 
             <button
+              type="button"
               className="save-button"
               onClick={handleSave}
               disabled={saving}
             >
-              {saving ? "Guardando..." : "Guardar Cambios"}
+              {saving ? "Guardando..." : "Guardar cambios"}
             </button>
           </div>
         </div>

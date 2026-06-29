@@ -27,7 +27,7 @@ function OrderStatus() {
   }, [id]);
 
   if (!order) {
-    return <p>Cargando...</p>;
+    return <p className="loading-text">Cargando...</p>;
   }
 
   return (
@@ -35,13 +35,14 @@ function OrderStatus() {
       <div className="success-card">
         <div className="success-icon">✓</div>
 
-        <h1>¡Pedido Confirmado!</h1>
+        <span className="eyebrow">Pedido recibido</span>
+        <h1>¡Pedido confirmado!</h1>
 
         <p>Tu pedido fue recibido correctamente y ya está siendo preparado.</p>
       </div>
 
       <div className="order-info-card">
-        <h2>Información del Pedido</h2>
+        <h2>Información del pedido</h2>
 
         <div className="info-row">
           <span>No. Pedido</span>
@@ -87,14 +88,19 @@ function OrderStatus() {
 
         <div className="buttons">
           <button
+            type="button"
             className="secondary-btn"
             onClick={() => navigate("/historial")}
           >
-            Ver Mis Pedidos
+            Ver mis pedidos
           </button>
 
-          <button className="primary-btn" onClick={() => navigate("/home")}>
-            Seguir Comprando
+          <button
+            type="button"
+            className="primary-btn"
+            onClick={() => navigate("/home")}
+          >
+            Seguir comprando
           </button>
         </div>
       </div>

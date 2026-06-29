@@ -7,12 +7,15 @@ function MainLayout() {
   const { user, logout } = useAuth();
 
   const firstName = user?.nombre?.split(" ")[0] || "";
-
   const initial = firstName.charAt(0).toUpperCase();
+
   return (
     <div className="layout">
       <aside className="sidebar">
-        <div className="logo">🍽 MetroBites</div>
+        <div className="logo">
+          <span className="logo-mark">🍽</span>
+          <span>MetroBites</span>
+        </div>
 
         <div className="sidebar-user">
           <div className="sidebar-avatar">{initial}</div>
@@ -22,40 +25,48 @@ function MainLayout() {
           <p>{user?.carrera}</p>
         </div>
 
-        <div className="sidebar-title">CATEGORÍAS</div>
+        <div className="sidebar-title">Categorías</div>
 
         <NavLink to="/home" className="menu-item">
-          🔥 Populares
+          <span className="menu-icon">🔥</span>
+          <span>Populares</span>
         </NavLink>
 
         <NavLink to="/home" className="menu-item">
-          ☕ Desayunos
+          <span className="menu-icon">☕</span>
+          <span>Desayunos</span>
         </NavLink>
 
         <NavLink to="/home" className="menu-item">
-          🍽 Comidas
+          <span className="menu-icon">🍽</span>
+          <span>Comidas</span>
         </NavLink>
 
         <NavLink to="/home" className="menu-item">
-          🥤 Bebidas
+          <span className="menu-icon">🥤</span>
+          <span>Bebidas</span>
         </NavLink>
 
         <NavLink to="/home" className="menu-item">
-          🍟 Snacks
+          <span className="menu-icon">🍟</span>
+          <span>Snacks</span>
         </NavLink>
 
         <hr />
 
         <NavLink to="/profile" className="menu-item">
-          👤 Perfil
+          <span className="menu-icon">👤</span>
+          <span>Perfil</span>
         </NavLink>
 
         <NavLink to="/historial" className="menu-item">
-          📜 Pedidos
+          <span className="menu-icon">📜</span>
+          <span>Pedidos</span>
         </NavLink>
 
         <button className="logout-button" onClick={logout}>
-          🚪 Cerrar Sesión
+          <span className="menu-icon">🚪</span>
+          <span>Cerrar sesión</span>
         </button>
       </aside>
 
