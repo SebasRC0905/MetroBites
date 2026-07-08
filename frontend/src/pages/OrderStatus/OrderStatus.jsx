@@ -5,6 +5,30 @@ import { useParams, useNavigate } from "react-router-dom";
 import orderService from "../../services/orderService";
 import "./OrderStatus.css";
 
+const statusLabels = {
+  recibido: "Recibido",
+  preparando: "Preparando",
+  listo: "Listo para recoger",
+  entregado: "Entregado",
+  cancelado: "Cancelado",
+};
+
+const statusProgress = {
+  recibido: "22%",
+  preparando: "48%",
+  listo: "78%",
+  entregado: "100%",
+  cancelado: "100%",
+};
+
+const statusMessages = {
+  recibido: "Tu pedido fue recibido correctamente.",
+  preparando: "Tu pedido está siendo preparado por la cafetería.",
+  listo: "Tu pedido está listo para recoger.",
+  entregado: "Tu pedido fue entregado. ¡Buen provecho!",
+  cancelado: "Tu pedido fue cancelado.",
+};
+
 function OrderStatus() {
   const { id } = useParams();
 
@@ -13,17 +37,28 @@ function OrderStatus() {
   const [order, setOrder] = useState(null);
 
   useEffect(() => {
+    let isMounted = true;
+
     const loadOrder = async () => {
       try {
         const response = await orderService.getOrderById(id);
 
-        setOrder(response.data);
+        if (isMounted) {
+          setOrder(response.data);
+        }
       } catch (error) {
         console.error(error);
       }
     };
 
     loadOrder();
+
+    const intervalId = setInterval(loadOrder, 5000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(intervalId);
+    };
   }, [id]);
 
   if (!order) {
@@ -35,10 +70,10 @@ function OrderStatus() {
       <div className="success-card">
         <div className="success-icon">✓</div>
 
-        <span className="eyebrow">Pedido recibido</span>
+        <span className="eyebrow">Pedido actualizado</span>
         <h1>¡Pedido confirmado!</h1>
 
-        <p>Tu pedido fue recibido correctamente y ya está siendo preparado.</p>
+        <p>{statusMessages[order.estado] || statusMessages.recibido}</p>
       </div>
 
       <div className="order-info-card">
@@ -52,7 +87,9 @@ function OrderStatus() {
         <div className="info-row">
           <span>Estado</span>
 
-          <span className="status-badge">{order.estado}</span>
+          <span className={`status-badge ${order.estado}`}>
+            {statusLabels[order.estado] || order.estado}
+          </span>
         </div>
 
         <div className="info-row">
@@ -72,10 +109,15 @@ function OrderStatus() {
         <h3>Estado del pedido</h3>
 
         <div className="progress-bar">
-          <div className="progress-fill"></div>
+          <div
+            className={`progress-fill ${order.estado}`}
+            style={{
+              width: statusProgress[order.estado] || statusProgress.recibido,
+            }}
+          />
         </div>
 
-        <p>Tu pedido está siendo preparado por la cafetería.</p>
+        <p>{statusMessages[order.estado] || statusMessages.recibido}</p>
       </div>
 
       <div className="next-step-card">

@@ -150,6 +150,77 @@
   animation: fadeUp 0.45s var(--ease) both;
 }
 
+.product-form-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 20px;
+}
+
+.product-form-heading h2 {
+  margin: 0;
+  color: var(--ink);
+}
+
+.product-form-heading span {
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.admin-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.admin-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.admin-field.full {
+  grid-column: 1 / -1;
+}
+
+.admin-field > span {
+  color: var(--ink-soft);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.admin-field input,
+.admin-field textarea,
+.admin-field select {
+  width: 100%;
+  min-height: 50px;
+  padding: 0 14px;
+  color: var(--ink);
+  background: #fbfdff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  transition:
+    border-color 0.2s var(--ease),
+    box-shadow 0.2s var(--ease),
+    background 0.2s var(--ease);
+}
+
+.admin-field textarea {
+  min-height: 110px;
+  padding-top: 14px;
+  resize: vertical;
+}
+
+.admin-field input:focus,
+.admin-field textarea:focus,
+.admin-field select:focus {
+  outline: none;
+  background: #ffffff;
+  border-color: var(--brand);
+  box-shadow: 0 0 0 4px rgba(86, 55, 200, 0.1);
+}
+
 @media (max-width: 920px) {
   .admin-layout {
     flex-direction: column;
@@ -179,6 +250,10 @@
 @media (max-width: 560px) {
   .admin-topbar {
     padding: 22px;
+  }
+
+  .admin-form-grid {
+    grid-template-columns: 1fr;
   }
 
   .admin-item,

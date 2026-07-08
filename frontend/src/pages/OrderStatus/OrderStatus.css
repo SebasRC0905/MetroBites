@@ -103,10 +103,33 @@
 
 .status-badge {
   padding: 8px 14px;
-  color: #ea580c;
-  background: #fff7ed;
   border-radius: 999px;
   font-weight: 800;
+}
+
+.status-badge.recibido {
+  color: #2563eb;
+  background: #dbeafe;
+}
+
+.status-badge.preparando {
+  color: #b45309;
+  background: #fef3c7;
+}
+
+.status-badge.listo {
+  color: #0f766e;
+  background: #ccfbf1;
+}
+
+.status-badge.entregado {
+  color: #15803d;
+  background: #dcfce7;
+}
+
+.status-badge.cancelado {
+  color: #dc2626;
+  background: #fee2e2;
 }
 
 .progress-bar {
@@ -120,12 +143,15 @@
 }
 
 .progress-fill {
-  width: 35%;
   height: 100%;
   background: linear-gradient(90deg, var(--brand), var(--mint));
   border-radius: inherit;
   box-shadow: 0 0 22px rgba(86, 55, 200, 0.28);
   animation: progressPulse 2.4s ease-in-out infinite;
+}
+
+.progress-fill.cancelado {
+  background: linear-gradient(90deg, var(--danger), #f97316);
 }
 
 @keyframes progressPulse {

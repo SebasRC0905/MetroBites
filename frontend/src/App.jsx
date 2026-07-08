@@ -15,6 +15,8 @@ import Profile from "./pages/Profile/Profile";
 
 import AdminDashboard from "./pages/AdminDashboard/AdminDashboard";
 import AdminProducts from "./pages/AdminProducts/AdminProducts";
+import AdminOrders from "./pages/AdminOrders/AdminOrders";
+import AdminUsers from "./pages/AdminUsers/AdminUsers";
 
 import MainLayout from "./layouts/MainLayout";
 import AdminLayout from "./layouts/AdminLayout/AdminLayout";
@@ -98,6 +100,16 @@ function App() {
             <Route
               path="/admin/productos"
               element={<AdminProducts />}
+            />
+
+            <Route
+              path="/admin/pedidos"
+              element={<AdminOrders />}
+            />
+
+            <Route
+              path="/admin/usuarios"
+              element={<AdminUsers />}
             />
 
           </Route>
