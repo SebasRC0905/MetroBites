@@ -1,7 +1,12 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 import authService from "../../services/authService";
+
+import Icon from "../../components/Icon";
+import Logo from "../../components/Logo";
+import AuthAside from "../../components/AuthAside";
 
 import { useAuth } from "../../context/AuthContext";
 import "./Login.css";
@@ -15,17 +20,27 @@ function Login() {
 
   const [password, setPassword] = useState("");
 
+  const [showPassword, setShowPassword] = useState(false);
+
+  const [submitting, setSubmitting] = useState(false);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (submitting) {
+      return;
+    }
+
     try {
+      setSubmitting(true);
+
       const response = await authService.login(correo, password);
 
       login(response.token, response.usuario);
 
-      if (response.usuario.rol === "admin") {
-        console.log("Navegando a /admin");
+      toast.success(`Bienvenido, ${response.usuario.nombre.split(" ")[0]}`);
 
+      if (response.usuario.rol === "admin") {
         navigate("/admin");
 
         return;
@@ -35,69 +50,104 @@ function Login() {
     } catch (error) {
       console.error(error);
 
-      alert("Credenciales incorrectas");
+      toast.error(
+        error.response?.data?.message || "Credenciales incorrectas",
+      );
+    } finally {
+      setSubmitting(false);
     }
   };
 
   return (
-    <div className="login-container">
-      <div className="login-left">
-        <div className="login-brand">
-          <span className="login-brand-mark">🍽</span>
-          <span>MetroBites</span>
-        </div>
+    <div className="auth-shell">
+      <AuthAside
+        title={
+          <>
+            Comida deliciosa,
+            <br />
+            sin hacer filas.
+          </>
+        }
+        subtitle="Exclusivo para la comunidad UPMH. Pide desde tu salón y recoge en ventanilla."
+        highlights={[
+          { icon: "clock", label: "Listo en tu receso" },
+          { icon: "qr", label: "Código de recolección" },
+          { icon: "wallet", label: "Paga en caja o con tarjeta" },
+        ]}
+      />
 
-        <h1>Comida lista cuando tú estés listo.</h1>
-
-        <p>
-          Pide desde tu salón, recoge sin filas y disfruta tu comida favorita.
-        </p>
-
-        <div className="login-showcase" aria-hidden="true">
-          <div className="showcase-card main">
-            <span>Pedido express</span>
-            <strong>12 min</strong>
+      <div className="auth-panel">
+        <div className="auth-card">
+          <div className="auth-card-brand">
+            <Logo size={46} />
           </div>
 
-          <div className="showcase-card accent">
-            <span>Favorito</span>
-            <strong>Cuernito + café</strong>
-          </div>
-        </div>
-      </div>
+          <div className="auth-card-head">
+            <span className="mb-eyebrow">
+              <Icon name="shield" size={13} />
+              Acceso seguro
+            </span>
 
-      <div className="login-right">
-        <div className="login-card">
-          <div className="login-card-heading">
-            <span className="eyebrow">Acceso seguro</span>
-            <h2>Bienvenido</h2>
-            <p>Inicia sesión para continuar</p>
+            <h1>Iniciar sesión</h1>
+
+            <p>Ingresa con tu correo institucional.</p>
           </div>
 
-          <form onSubmit={handleSubmit}>
-            <input
-              className="login-input"
-              type="email"
-              placeholder="Correo institucional"
-              value={correo}
-              onChange={(e) => setCorreo(e.target.value)}
-            />
+          <form onSubmit={handleSubmit} className="auth-form">
+            <label className="mb-field">
+              <span>Correo electrónico</span>
 
-            <input
-              className="login-input"
-              type="password"
-              placeholder="Contraseña"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
+              <div className="mb-input-icon">
+                <Icon name="mail" size={19} />
+                <input
+                  className="mb-input"
+                  type="email"
+                  autoComplete="email"
+                  placeholder="ejemplo@upmh.edu.mx"
+                  value={correo}
+                  onChange={(e) => setCorreo(e.target.value)}
+                />
+              </div>
+            </label>
 
-            <button type="submit" className="login-button">
-              Iniciar sesión
+            <label className="mb-field">
+              <span className="auth-label-row">
+                Contraseña
+                <button
+                  type="button"
+                  className="auth-toggle"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                >
+                  {showPassword ? "Ocultar" : "Mostrar"}
+                </button>
+              </span>
+
+              <div className="mb-input-icon">
+                <Icon name="lock" size={19} />
+                <input
+                  className="mb-input"
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="current-password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </div>
+            </label>
+
+            <button
+              type="submit"
+              className="mb-btn mb-btn-primary mb-btn-lg mb-btn-block"
+              disabled={submitting}
+            >
+              {submitting ? <span className="mb-spinner" /> : null}
+              {submitting ? "Entrando…" : "Entrar"}
             </button>
-            <div className="register-link">
-              <Link to="/register">¿No tienes cuenta? Regístrate</Link>
-            </div>
           </form>
+
+          <p className="auth-foot">
+            ¿No tienes cuenta? <Link to="/register">Regístrate aquí</Link>
+          </p>
         </div>
       </div>
     </div>

@@ -1,231 +1,334 @@
-.order-status-container {
-  max-width: 920px;
+/* ============================================================
+   Estado del pedido
+   ============================================================ */
+
+.status {
+  max-width: 720px;
   margin: 0 auto;
 }
 
-.success-card,
-.order-info-card,
-.progress-card,
-.next-step-card {
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(255, 255, 255, 0.96);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-md);
-  animation: fadeUp 0.45s var(--ease) both;
+.status-card,
+.status-track,
+.status-detail {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-sm);
 }
 
-.success-card {
+.status-card {
   position: relative;
-  padding: clamp(32px, 5vw, 48px);
-  margin-bottom: 24px;
+  padding: clamp(28px, 4vw, 44px);
+  margin-bottom: 18px;
   overflow: hidden;
   text-align: center;
+  animation: fadeUp 0.5s var(--ease) both;
 }
 
-.success-card::before {
+.status-card::before {
   content: "";
   position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(22, 163, 74, 0.1), transparent 44%);
+  top: -120px;
+  left: 50%;
+  width: 320px;
+  height: 320px;
+  background: radial-gradient(circle, rgba(14, 159, 110, 0.12), transparent 66%);
+  transform: translateX(-50%);
   pointer-events: none;
 }
 
-.success-icon {
+.status-card.is-cancelled::before {
+  background: radial-gradient(circle, rgba(225, 29, 72, 0.12), transparent 66%);
+}
+
+.status-icon {
   position: relative;
-  width: 88px;
-  height: 88px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  place-items: center;
+  width: 78px;
+  height: 78px;
   margin: 0 auto 20px;
   color: #ffffff;
-  background: linear-gradient(135deg, var(--success), var(--mint));
+  background: linear-gradient(140deg, #14b981, #0b7a55);
   border-radius: 50%;
-  box-shadow: 0 20px 42px rgba(22, 163, 74, 0.28);
-  font-size: 42px;
-  font-weight: 800;
-  animation: softFloat 4.2s ease-in-out infinite;
+  box-shadow: 0 16px 34px rgba(14, 159, 110, 0.34);
+  animation: popIn 0.5s var(--ease-out) both;
 }
 
-.success-card h1 {
-  position: relative;
-  margin: 10px 0;
-  color: var(--ink);
-  font-size: clamp(34px, 5vw, 48px);
-  line-height: 1.05;
+.status-icon::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  animation: pulseRing 2.4s var(--ease-out) infinite;
 }
 
-.success-card p {
-  position: relative;
-  max-width: 560px;
-  margin: 0 auto;
+.status-card.is-cancelled .status-icon {
+  background: linear-gradient(140deg, #f43f5e, #be123c);
+  box-shadow: 0 16px 34px rgba(225, 29, 72, 0.32);
+}
+
+.status-card h1 {
+  font-size: clamp(25px, 3.4vw, 34px);
+}
+
+.status-card > p {
+  max-width: 46ch;
+  margin: 10px auto 0;
   color: var(--muted);
-  font-size: 17px;
-  line-height: 1.55;
+  line-height: 1.6;
 }
 
-.order-info-card,
-.progress-card,
-.next-step-card {
-  padding: 28px;
-  margin-bottom: 20px;
+.status-order-id {
+  display: inline-block;
+  padding: 8px 16px;
+  margin-top: 20px;
+  color: var(--violet-800);
+  background: var(--violet-100);
+  border-radius: var(--r-pill);
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 800;
 }
 
-.order-info-card h2,
-.progress-card h3,
-.next-step-card h3 {
-  margin: 0 0 16px;
+.status-ticket {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  max-width: 420px;
+  padding: 20px 22px;
+  margin: 22px auto 0;
+  text-align: left;
+  background: var(--surface-sunken);
+  border: 1.5px dashed var(--violet-200);
+  border-radius: var(--r-lg);
+}
+
+.status-ticket-code span {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.status-ticket-code strong {
+  display: block;
+  margin-top: 6px;
   color: var(--ink);
+  font-family: "SFMono-Regular", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-size: 19px;
+  letter-spacing: 0.02em;
+  word-break: break-all;
 }
 
-.info-row {
+.status-ticket-icon {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  flex: 0 0 auto;
+  color: var(--violet-700);
+  background: var(--violet-50);
+  border-radius: var(--r-md);
+}
+
+.status-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 18px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* ---------- Seguimiento ---------- */
+
+.status-track {
+  padding: clamp(22px, 3vw, 30px);
+  margin-bottom: 18px;
+  animation: fadeUp 0.55s var(--ease) 0.06s both;
+}
+
+.status-track-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 16px 0;
-  border-bottom: 1px solid var(--line);
+  margin-bottom: 28px;
 }
 
-.info-row:last-child {
-  border-bottom: none;
+.status-track-head h2 {
+  font-size: 19px;
 }
 
-.info-row span:first-child {
+.status-steps {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.status-line {
+  position: absolute;
+  top: 19px;
+  right: 12%;
+  left: 12%;
+  height: 3px;
+  background: var(--line-strong);
+  border-radius: var(--r-pill);
+}
+
+.status-line span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--violet-600), var(--emerald-600));
+  border-radius: inherit;
+  transition: width 0.7s var(--ease-out);
+}
+
+.status-step {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.status-step-dot {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  color: var(--muted-soft);
+  background: var(--surface);
+  border: 2px solid var(--line-strong);
+  border-radius: 50%;
+  transition:
+    color var(--dur) var(--ease),
+    background-color var(--dur) var(--ease),
+    border-color var(--dur) var(--ease),
+    transform var(--dur) var(--ease);
+}
+
+.status-step-label {
   color: var(--muted);
+  font-family: var(--font-display);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.status-step.is-done .status-step-dot {
+  color: #ffffff;
+  background: var(--emerald-600);
+  border-color: var(--emerald-600);
+}
+
+.status-step.is-done .status-step-label {
+  color: var(--ink-soft);
+}
+
+.status-step.is-current .status-step-dot {
+  color: #ffffff;
+  background: var(--grad-brand);
+  border-color: transparent;
+  box-shadow: 0 10px 22px rgba(78, 19, 160, 0.3);
+  transform: scale(1.08);
+}
+
+.status-step.is-current .status-step-label {
+  color: var(--violet-800);
+  font-weight: 800;
+}
+
+/* ---------- Detalle ---------- */
+
+.status-detail {
+  padding: clamp(22px, 3vw, 30px);
+  animation: fadeUp 0.6s var(--ease) 0.12s both;
+}
+
+.status-products {
+  display: grid;
+  margin-bottom: 20px;
+}
+
+.status-products li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 14.5px;
+}
+
+.status-products li:last-child {
+  border-bottom: 0;
+}
+
+.status-products-qty {
+  color: var(--violet-700);
+  font-family: var(--font-display);
   font-weight: 700;
 }
 
-.info-row strong {
-  color: var(--ink);
-  text-align: right;
+.status-products-name {
+  color: var(--ink-soft);
 }
 
-.status-badge {
-  padding: 8px 14px;
-  border-radius: 999px;
-  font-weight: 800;
-}
-
-.status-badge.recibido {
-  color: #2563eb;
-  background: #dbeafe;
-}
-
-.status-badge.preparando {
-  color: #b45309;
-  background: #fef3c7;
-}
-
-.status-badge.listo {
-  color: #0f766e;
-  background: #ccfbf1;
-}
-
-.status-badge.entregado {
-  color: #15803d;
-  background: #dcfce7;
-}
-
-.status-badge.cancelado {
-  color: #dc2626;
-  background: #fee2e2;
-}
-
-.progress-bar {
-  position: relative;
-  width: 100%;
-  height: 14px;
-  margin: 20px 0;
-  overflow: hidden;
-  background: #e9eef5;
-  border-radius: 999px;
-}
-
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--brand), var(--mint));
-  border-radius: inherit;
-  box-shadow: 0 0 22px rgba(86, 55, 200, 0.28);
-  animation: progressPulse 2.4s ease-in-out infinite;
-}
-
-.progress-fill.cancelado {
-  background: linear-gradient(90deg, var(--danger), #f97316);
-}
-
-@keyframes progressPulse {
-  0%,
-  100% {
-    filter: brightness(1);
-  }
-
-  50% {
-    filter: brightness(1.16);
-  }
-}
-
-.progress-card p,
-.next-step-card p {
+.status-products-name small {
+  display: block;
+  margin-top: 2px;
   color: var(--muted);
-  line-height: 1.65;
+  font-size: 12px;
 }
 
-.buttons {
+.status-products strong {
+  color: var(--ink);
+  font-family: var(--font-display);
+}
+
+.status-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 22px;
+}
+
+.status-detail-state {
+  font-size: 19px !important;
+  text-transform: capitalize;
+}
+
+.status-actions {
   display: flex;
-  gap: 14px;
-  margin-top: 28px;
+  gap: 12px;
 }
 
-.primary-btn,
-.secondary-btn {
+.status-actions .mb-btn {
   flex: 1;
-  min-height: 52px;
-  border-radius: var(--radius-control);
-  font-weight: 800;
-  transition:
-    transform 0.22s var(--ease),
-    box-shadow 0.22s var(--ease),
-    background 0.22s var(--ease),
-    color 0.22s var(--ease);
 }
 
-.primary-btn {
-  color: #ffffff;
-  background: linear-gradient(135deg, var(--accent), #ff9a67);
-  border: none;
-  box-shadow: 0 16px 28px rgba(255, 118, 88, 0.28);
-}
-
-.secondary-btn {
-  color: var(--brand);
-  background: #ffffff;
-  border: 1px solid rgba(86, 55, 200, 0.26);
-}
-
-.primary-btn:hover,
-.secondary-btn:hover {
-  transform: translateY(-2px);
-}
-
-.primary-btn:hover {
-  box-shadow: 0 20px 34px rgba(255, 118, 88, 0.34);
-}
-
-.secondary-btn:hover {
-  color: #ffffff;
-  background: var(--brand);
-  box-shadow: 0 16px 28px rgba(86, 55, 200, 0.22);
-}
-
-@media (max-width: 620px) {
-  .info-row,
-  .buttons {
-    align-items: stretch;
+@media (max-width: 640px) {
+  .status-ticket {
+    align-items: flex-start;
     flex-direction: column;
   }
 
-  .info-row strong {
-    text-align: left;
+  .status-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .status-actions {
+    flex-direction: column;
+  }
+
+  .status-step-label {
+    font-size: 11px;
   }
 }

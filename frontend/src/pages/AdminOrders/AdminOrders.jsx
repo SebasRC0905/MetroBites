@@ -1,6 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import toast from "react-hot-toast";
 
 import adminOrderService from "../../services/adminOrderService";
+
+import Icon from "../../components/Icon";
+import EmptyState from "../../components/EmptyState";
+import { SkeletonGrid } from "../../components/Skeleton";
 
 import "./AdminOrders.css";
 
@@ -12,6 +17,14 @@ const statusLabels = {
   cancelado: "Cancelado",
 };
 
+const statusTones = {
+  recibido: "blue",
+  preparando: "amber",
+  listo: "violet",
+  entregado: "green",
+  cancelado: "red",
+};
+
 const statusTransitions = {
   recibido: ["recibido", "preparando", "cancelado"],
   preparando: ["preparando", "listo", "cancelado"],
@@ -20,10 +33,21 @@ const statusTransitions = {
   cancelado: ["cancelado"],
 };
 
+const filters = [
+  { key: "activos", label: "En curso" },
+  { key: "todos", label: "Todos" },
+  { key: "recibido", label: "Recibidos" },
+  { key: "preparando", label: "Preparando" },
+  { key: "listo", label: "Listos" },
+  { key: "entregado", label: "Entregados" },
+];
+
 function AdminOrders() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [updatingId, setUpdatingId] = useState(null);
+  const [filter, setFilter] = useState("activos");
 
   const loadOrders = async () => {
     try {
@@ -32,13 +56,20 @@ function AdminOrders() {
       setOrders(response.data);
     } catch (error) {
       console.error(error);
+
+      toast.error("No pudimos cargar los pedidos");
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
   useEffect(() => {
-    loadOrders();
+    const init = async () => {
+      await loadOrders();
+    };
+
+    init();
   }, []);
 
   const handleStatusChange = async (order, estado) => {
@@ -61,10 +92,12 @@ function AdminOrders() {
             : item,
         ),
       );
+
+      toast.success(`Pedido #${order.id} → ${statusLabels[estado]}`);
     } catch (error) {
       console.error(error);
 
-      alert(error.response?.data?.message || "Error al actualizar pedido");
+      toast.error(error.response?.data?.message || "Error al actualizar pedido");
     } finally {
       setUpdatingId(null);
     }
@@ -85,81 +118,140 @@ function AdminOrders() {
     0,
   );
 
+  const visibleOrders = useMemo(() => {
+    if (filter === "todos") {
+      return orders;
+    }
+
+    if (filter === "activos") {
+      return orders.filter(
+        (order) => !["entregado", "cancelado"].includes(order.estado),
+      );
+    }
+
+    return orders.filter((order) => order.estado === filter);
+  }, [orders, filter]);
+
   return (
     <div className="admin-orders">
-      <div className="admin-orders-header">
-        <div className="admin-title">
-          <span className="eyebrow">Operación</span>
-          <h1>Administración de pedidos</h1>
-
-          <p>Cambia el estado de los pedidos y mantén informado al alumno.</p>
+      <div className="admin-toolbar">
+        <div>
+          <h2 className="admin-section-title">Pedidos</h2>
+          <p className="admin-section-text">
+            Cambia el estado y mantén informado al alumno.
+          </p>
         </div>
+
+        <button
+          type="button"
+          className="mb-btn mb-btn-ghost"
+          onClick={() => {
+            setRefreshing(true);
+            loadOrders();
+          }}
+          disabled={refreshing}
+        >
+          <Icon name="refresh" size={18} className={refreshing ? "is-spinning" : ""} />
+          Actualizar
+        </button>
       </div>
 
-      <div className="admin-orders-summary">
-        <div>
-          <span>Pedidos</span>
-          <strong>{orders.length}</strong>
+      <section className="admin-orders-kpis">
+        <div className="mb-stat">
+          <span className="mb-stat-label">Pedidos totales</span>
+          <span className="mb-stat-value">{orders.length}</span>
         </div>
 
-        <div>
-          <span>Activos</span>
-          <strong>{activeOrders}</strong>
+        <div className="mb-stat">
+          <span className="mb-stat-label">En curso</span>
+          <span className="mb-stat-value">{activeOrders}</span>
         </div>
 
-        <div>
-          <span>Total vendido</span>
-          <strong>${totalSales.toFixed(2)}</strong>
+        <div className="mb-stat">
+          <span className="mb-stat-label">Total vendido</span>
+          <span className="mb-stat-value">${totalSales.toFixed(2)}</span>
         </div>
+      </section>
+
+      <div className="admin-filters">
+        {filters.map((item) => (
+          <button
+            key={item.key}
+            type="button"
+            className={`mb-chip ${filter === item.key ? "is-active" : ""}`}
+            onClick={() => setFilter(item.key)}
+          >
+            {item.label}
+          </button>
+        ))}
       </div>
 
       {loading ? (
-        <p className="loading-text">Cargando pedidos...</p>
-      ) : orders.length === 0 ? (
-        <div className="admin-empty-state">
-          <h2>No hay pedidos todavía</h2>
-          <p>Cuando los alumnos generen pedidos aparecerán aquí.</p>
-        </div>
+        <SkeletonGrid
+          count={4}
+          image={false}
+          lines={3}
+          className="admin-orders-grid"
+        />
+      ) : visibleOrders.length === 0 ? (
+        <EmptyState
+          icon="receipt"
+          title="No hay pedidos en este filtro"
+          description="Cuando los alumnos generen pedidos aparecerán aquí."
+        />
       ) : (
         <div className="admin-orders-grid">
-          {orders.map((order) => (
-            <div key={order.id} className="admin-order-card">
-              <div className="admin-order-top">
+          {visibleOrders.map((order, index) => (
+            <article
+              key={order.id}
+              className="admin-order mb-reveal"
+              style={{ "--i": index }}
+            >
+              <header className="admin-order-head">
                 <div>
                   <span className="admin-order-number">Pedido #{order.id}</span>
-                  <h2>{order.cliente}</h2>
+                  <h3>{order.cliente}</h3>
                 </div>
 
-                <span className={`order-status-badge ${order.estado}`}>
+                <span
+                  className={`mb-badge ${statusTones[order.estado] || "neutral"}`}
+                >
                   {statusLabels[order.estado] || order.estado}
                 </span>
+              </header>
+
+              <dl className="admin-order-meta">
+                <div>
+                  <dt>Matrícula</dt>
+                  <dd>{order.matricula}</dd>
+                </div>
+
+                <div>
+                  <dt>Total</dt>
+                  <dd>${Number(order.total).toFixed(2)}</dd>
+                </div>
+
+                <div>
+                  <dt>Pago</dt>
+                  <dd className="is-capital">{order.metodo_pago}</dd>
+                </div>
+
+                <div>
+                  <dt>Creado</dt>
+                  <dd>{formatDate(order.creado_en)}</dd>
+                </div>
+              </dl>
+
+              <div className="admin-order-code">
+                <Icon name="qr" size={16} />
+                {order.codigo_qr}
               </div>
 
-              <div className="admin-order-meta">
-                <div>
-                  <span>Matrícula</span>
-                  <strong>{order.matricula}</strong>
-                </div>
+              <label className="mb-field admin-order-status">
+                <span>Cambiar estado</span>
 
-                <div>
-                  <span>Total</span>
-                  <strong>${Number(order.total).toFixed(2)}</strong>
-                </div>
-
-                <div>
-                  <span>Pago</span>
-                  <strong>{order.metodo_pago}</strong>
-                </div>
-
-                <div>
-                  <span>Creado</span>
-                  <strong>{formatDate(order.creado_en)}</strong>
-                </div>
-              </div>
-
-              <label className="admin-field admin-status-field">
-                <span>Estado del pedido</span>
                 <select
+                  className="mb-select"
                   value={order.estado}
                   disabled={updatingId === order.id}
                   onChange={(e) => handleStatusChange(order, e.target.value)}
@@ -171,12 +263,7 @@ function AdminOrders() {
                   ))}
                 </select>
               </label>
-
-              <div className="admin-order-code">
-                <span>Código</span>
-                <strong>{order.codigo_qr}</strong>
-              </div>
-            </div>
+            </article>
           ))}
         </div>
       )}

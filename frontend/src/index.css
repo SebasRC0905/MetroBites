@@ -1,34 +1,102 @@
+@import "./styles/ui.css";
+
+/* ============================================================
+   MetroBites · Sistema de diseño
+   Tokens base: color, tipografía, radios, sombras y curvas.
+   ============================================================ */
+
 :root {
+  /* Tipografía */
+  --font-display: "Plus Jakarta Sans", "Segoe UI", system-ui, sans-serif;
   --font-main: "Inter", "Segoe UI", system-ui, sans-serif;
-  --bg: #f6f8fb;
-  --bg-warm: #fff7f2;
+
+  /* Escala violeta (color institucional) */
+  --violet-950: #200645;
+  --violet-900: #300a66;
+  --violet-800: #3d0d82;
+  --violet-700: #4e13a0;
+  --violet-600: #6023be;
+  --violet-500: #7c3aed;
+  --violet-200: #d9c8ff;
+  --violet-100: #ece2ff;
+  --violet-50: #f5f0ff;
+
+  /* Escala coral (acento) */
+  --coral-700: #d95a3d;
+  --coral-600: #ef6a4e;
+  --coral-500: #f97a5c;
+  --coral-400: #ff9878;
+  --coral-100: #ffdfd5;
+  --coral-50: #fff2ee;
+
+  /* Escala verde (estados positivos) */
+  --emerald-700: #0b7a55;
+  --emerald-600: #0e9f6e;
+  --emerald-50: #e6f7f0;
+
+  /* Neutros */
+  --ink: #14121f;
+  --ink-soft: #3b3856;
+  --muted: #6e6a85;
+  --muted-soft: #9a96ac;
+  --line: rgba(20, 18, 31, 0.08);
+  --line-strong: rgba(20, 18, 31, 0.14);
+  --bg: #f5f4f9;
+  --bg-deep: #eeecf5;
   --surface: #ffffff;
-  --surface-soft: rgba(255, 255, 255, 0.78);
-  --surface-muted: #f1f5f9;
-  --ink: #172033;
-  --ink-soft: #334155;
-  --muted: #667085;
-  --line: rgba(23, 32, 51, 0.1);
-  --brand: #5637c8;
-  --brand-deep: #35216f;
-  --brand-soft: #eee9ff;
-  --accent: #ff7658;
-  --accent-soft: #fff0eb;
-  --mint: #0f8f83;
-  --mint-soft: #e7f8f5;
-  --warning: #f7b731;
-  --danger: #ef4444;
-  --success: #16a34a;
-  --radius-card: 8px;
-  --radius-control: 14px;
-  --shadow-xs: 0 1px 2px rgba(23, 32, 51, 0.06);
-  --shadow-sm: 0 8px 24px rgba(23, 32, 51, 0.08);
-  --shadow-md: 0 16px 42px rgba(23, 32, 51, 0.12);
-  --shadow-lg: 0 24px 70px rgba(23, 32, 51, 0.16);
-  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --surface-muted: #f6f5fa;
+  --surface-sunken: #fafaff;
+
+  /* Alias semánticos (compatibilidad con estilos previos) */
+  --brand: var(--violet-700);
+  --brand-deep: var(--violet-900);
+  --brand-soft: var(--violet-100);
+  --accent: var(--coral-500);
+  --accent-soft: var(--coral-50);
+  --mint: var(--emerald-600);
+  --mint-soft: var(--emerald-50);
+  --warning: #d97706;
+  --warning-soft: #fef3c7;
+  --danger: #e11d48;
+  --danger-soft: #ffe9ee;
+  --success: var(--emerald-600);
+  --info: #2563eb;
+  --info-soft: #e0edff;
+
+  /* Gradientes */
+  --grad-brand: linear-gradient(135deg, var(--violet-700), var(--violet-900));
+  --grad-accent: linear-gradient(135deg, var(--coral-500), var(--coral-400));
+  --grad-hero: linear-gradient(135deg, #3d0d82 0%, #4e13a0 55%, #5b1cb5 100%);
+
+  /* Radios */
+  --r-xs: 8px;
+  --r-sm: 12px;
+  --r-md: 16px;
+  --r-lg: 20px;
+  --r-xl: 26px;
+  --r-pill: 999px;
+  --radius-card: var(--r-lg);
+  --radius-control: var(--r-sm);
+
+  /* Sombras (tintadas en violeta para integrarse con el fondo) */
+  --shadow-xs: 0 1px 2px rgba(35, 18, 74, 0.06);
+  --shadow-sm: 0 6px 18px rgba(35, 18, 74, 0.07);
+  --shadow-md: 0 14px 38px rgba(35, 18, 74, 0.1);
+  --shadow-lg: 0 26px 64px rgba(35, 18, 74, 0.16);
+  --shadow-brand: 0 14px 30px rgba(78, 19, 160, 0.28);
+  --shadow-accent: 0 14px 30px rgba(249, 122, 92, 0.32);
+
+  /* Movimiento */
+  --ease: cubic-bezier(0.22, 0.85, 0.28, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-fast: 0.16s;
+  --dur: 0.26s;
+  --dur-slow: 0.5s;
 }
 
-* {
+*,
+*::before,
+*::after {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
@@ -36,19 +104,36 @@
 
 html {
   scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
   min-width: 320px;
+  min-height: 100vh;
   font-family: var(--font-main);
-  background:
-    linear-gradient(135deg, rgba(86, 55, 200, 0.06), transparent 36%),
-    linear-gradient(225deg, rgba(15, 143, 131, 0.08), transparent 38%),
-    linear-gradient(180deg, var(--bg), #ffffff 70%);
+  font-size: 15px;
+  line-height: 1.5;
   color: var(--ink);
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(52rem 32rem at 88% -12%, rgba(124, 58, 237, 0.09), transparent 60%),
+    radial-gradient(46rem 30rem at -8% 8%, rgba(249, 122, 92, 0.08), transparent 62%);
+  background-attachment: fixed;
   overflow-x: hidden;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--ink);
 }
 
 button,
@@ -56,18 +141,25 @@ input,
 textarea,
 select {
   font: inherit;
+  color: inherit;
 }
 
 button,
 select,
 input[type="checkbox"],
-input[type="radio"] {
+input[type="radio"],
+label[role="button"] {
   cursor: pointer;
+}
+
+button {
+  background: none;
+  border: 0;
 }
 
 button:disabled {
   cursor: not-allowed;
-  opacity: 0.68;
+  opacity: 0.6;
 }
 
 a {
@@ -80,62 +172,122 @@ img {
   max-width: 100%;
 }
 
+ul,
+ol {
+  list-style: none;
+}
+
 ::selection {
-  background: rgba(86, 55, 200, 0.18);
+  color: #ffffff;
+  background: var(--violet-600);
 }
 
 :focus-visible {
-  outline: 3px solid rgba(86, 55, 200, 0.28);
+  outline: 2px solid var(--violet-600);
   outline-offset: 3px;
-}
-
-::-webkit-scrollbar {
-  width: 10px;
-}
-
-::-webkit-scrollbar-track {
-  background: #eef2f7;
-}
-
-::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, var(--brand), var(--mint));
-  border: 2px solid #eef2f7;
-  border-radius: 999px;
+  border-radius: 6px;
 }
 
 #root {
   min-height: 100vh;
+  isolation: isolate;
 }
 
-.loading-text,
-.empty-state-copy {
-  color: var(--muted);
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 11px;
+  height: 11px;
 }
 
-.eyebrow {
-  display: inline-flex;
-  align-items: center;
-  min-height: 28px;
-  padding: 0 10px;
-  margin-bottom: 14px;
-  color: var(--mint);
-  background: var(--mint-soft);
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.09em;
+::-webkit-scrollbar-track {
+  background: transparent;
 }
+
+::-webkit-scrollbar-thumb {
+  background: rgba(78, 19, 160, 0.22);
+  border: 3px solid transparent;
+  border-radius: var(--r-pill);
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(78, 19, 160, 0.38);
+  background-clip: content-box;
+}
+
+/* ============================================================
+   Animaciones compartidas
+   ============================================================ */
 
 @keyframes fadeUp {
   from {
     opacity: 0;
-    transform: translateY(14px);
+    transform: translateY(16px);
   }
 
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: none;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes popIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+
+  60% {
+    transform: scale(1.06);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+
+  to {
+    background-position: -200% 0;
   }
 }
 
@@ -146,17 +298,47 @@ img {
   }
 
   50% {
-    transform: translateY(-8px);
+    transform: translateY(-7px);
   }
 }
 
-@keyframes shimmer {
-  0% {
-    transform: translateX(-100%);
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes drawStroke {
+  from {
+    stroke-dashoffset: var(--dash, 48);
   }
 
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes pulseRing {
+  0% {
+    opacity: 0.55;
+    transform: scale(0.9);
+  }
+
+  70%,
   100% {
-    transform: translateX(100%);
+    opacity: 0;
+    transform: scale(1.9);
+  }
+}
+
+@keyframes driftSlow {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  50% {
+    transform: translate3d(2%, -3%, 0) scale(1.06);
   }
 }
 

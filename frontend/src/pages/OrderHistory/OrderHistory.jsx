@@ -1,14 +1,47 @@
-import { useEffect, useState } from "react";
-
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import historyService from "../../services/historyService";
+
+import Icon from "../../components/Icon";
+import EmptyState from "../../components/EmptyState";
+import { SkeletonGrid } from "../../components/Skeleton";
+
 import "./OrderHistory.css";
+
+const statusStyles = {
+  recibido: "blue",
+  preparando: "amber",
+  listo: "violet",
+  entregado: "green",
+  cancelado: "red",
+};
+
+const filters = [
+  { key: "todos", label: "Todos" },
+  { key: "activos", label: "En curso" },
+  { key: "entregado", label: "Entregados" },
+  { key: "cancelado", label: "Cancelados" },
+];
+
+const formatDate = (value) => {
+  if (!value) {
+    return "";
+  }
+
+  return new Date(value).toLocaleDateString("es-MX", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+};
 
 function OrderHistory() {
   const navigate = useNavigate();
 
   const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState("todos");
 
   useEffect(() => {
     const loadOrders = async () => {
@@ -18,71 +51,175 @@ function OrderHistory() {
         setOrders(response.data);
       } catch (error) {
         console.error(error);
+      } finally {
+        setLoading(false);
       }
     };
 
     loadOrders();
   }, []);
 
+  const stats = useMemo(() => {
+    const gastado = orders.reduce(
+      (acc, order) => acc + Number(order.total || 0),
+      0,
+    );
+
+    const activos = orders.filter(
+      (order) => !["entregado", "cancelado"].includes(order.estado),
+    ).length;
+
+    return { gastado, activos };
+  }, [orders]);
+
+  const visibleOrders = useMemo(() => {
+    if (filter === "todos") {
+      return orders;
+    }
+
+    if (filter === "activos") {
+      return orders.filter(
+        (order) => !["entregado", "cancelado"].includes(order.estado),
+      );
+    }
+
+    return orders.filter((order) => order.estado === filter);
+  }, [orders, filter]);
+
   return (
-    <div className="history-container">
-      <div className="history-header">
-        <span className="eyebrow">Historial</span>
-        <h1>Mis pedidos</h1>
+    <div className="history">
+      <header className="mb-page-head">
+        <div>
+          <span className="mb-eyebrow">
+            <Icon name="receipt" size={13} />
+            Historial
+          </span>
 
-        <p>Consulta el historial y estado de todos tus pedidos.</p>
-      </div>
+          <h1>Tus pedidos</h1>
 
-      {orders.length === 0 ? (
-        <div className="empty-history">
-          <h2>No tienes pedidos todavía</h2>
-
-          <p>Cuando realices tu primer pedido aparecerá aquí.</p>
-
-          <button
-            type="button"
-            className="history-btn"
-            onClick={() => navigate("/home")}
-          >
-            Ir al menú
-          </button>
+          <p>Consulta el estado y el detalle de todos tus pedidos.</p>
         </div>
-      ) : (
-        <div className="history-grid">
-          {orders.map((order) => (
-            <div key={order.id} className="history-card">
-              <div className="history-top">
-                <h2>Pedido #{order.id}</h2>
+      </header>
 
-                <span
-                  className={`history-status ${order.estado.toLowerCase()}`}
-                >
-                  {order.estado}
-                </span>
-              </div>
+      <section className="history-hero">
+        <div className="history-hero-copy">
+          <h2>Todo tu consumo en un lugar</h2>
+          <p>Revisa cuánto has pedido este cuatrimestre en la cafetería.</p>
+        </div>
 
-              <div className="history-info">
-                <div>
-                  <span>Total</span>
+        <dl className="history-hero-stats">
+          <div>
+            <dt>Pedidos</dt>
+            <dd>{loading ? "—" : orders.length}</dd>
+          </div>
 
-                  <strong>${Number(order.total).toFixed(2)}</strong>
-                </div>
+          <div>
+            <dt>En curso</dt>
+            <dd>{loading ? "—" : stats.activos}</dd>
+          </div>
 
-                <div>
-                  <span>Pedido</span>
+          <div>
+            <dt>Total</dt>
+            <dd>${stats.gastado.toFixed(2)}</dd>
+          </div>
+        </dl>
+      </section>
 
-                  <strong>#{order.id}</strong>
-                </div>
-              </div>
+      <nav className="history-filters" aria-label="Filtrar pedidos">
+        {filters.map((item) => (
+          <button
+            key={item.key}
+            type="button"
+            className={`mb-chip ${filter === item.key ? "is-active" : ""}`}
+            onClick={() => setFilter(item.key)}
+          >
+            {item.label}
+          </button>
+        ))}
+      </nav>
 
+      {loading ? (
+        <SkeletonGrid
+          count={3}
+          image={false}
+          lines={2}
+          className="history-list"
+        />
+      ) : visibleOrders.length === 0 ? (
+        <EmptyState
+          icon="receipt"
+          title={
+            orders.length === 0
+              ? "Todavía no tienes pedidos"
+              : "Sin pedidos en este filtro"
+          }
+          description={
+            orders.length === 0
+              ? "Cuando realices tu primer pedido aparecerá aquí."
+              : "Prueba con otra categoría del historial."
+          }
+          action={
+            orders.length === 0 ? (
               <button
                 type="button"
-                className="history-btn"
-                onClick={() => navigate(`/order-status/${order.id}`)}
+                className="mb-btn mb-btn-accent mb-btn-lg"
+                onClick={() => navigate("/home")}
               >
-                Ver detalles
+                Ir al menú
+                <Icon name="arrowRight" size={18} />
               </button>
-            </div>
+            ) : null
+          }
+        />
+      ) : (
+        <div className="history-list">
+          {visibleOrders.map((order, index) => (
+            <article
+              key={order.id}
+              className="history-row mb-reveal"
+              style={{ "--i": index }}
+            >
+              <div className="history-row-main">
+                <div className="history-row-meta">
+                  <span className="history-date">
+                    {formatDate(order.creado_en)}
+                  </span>
+
+                  <span
+                    className={`mb-badge ${statusStyles[order.estado] || "neutral"}`}
+                  >
+                    {order.estado}
+                  </span>
+                </div>
+
+                <h3>Orden #{order.id}</h3>
+
+                <p className="history-row-code">
+                  <Icon name="qr" size={14} />
+                  {order.codigo_qr}
+
+                  <span className="history-dot" />
+
+                  <Icon name="wallet" size={14} />
+                  {order.metodo_pago}
+                </p>
+              </div>
+
+              <div className="history-row-side">
+                <span className="history-total">
+                  ${Number(order.total).toFixed(2)}
+                </span>
+
+                <button
+                  type="button"
+                  className="mb-btn mb-btn-soft mb-btn-sm"
+                  onClick={() => navigate(`/order-status/${order.id}`)}
+                >
+                  Ver detalle
+                  <Icon name="chevronRight" size={16} />
+                </button>
+              </div>
+            </article>
           ))}
         </div>
       )}

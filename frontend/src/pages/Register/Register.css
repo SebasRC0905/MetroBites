@@ -1,14 +1,89 @@
 @import "../Login/Login.css";
 
-.register-container .login-right {
+.register-shell .auth-panel {
   align-items: flex-start;
-  overflow-y: auto;
+  padding-block: clamp(28px, 4vw, 56px);
 }
 
-.register-container .login-card {
-  margin-block: 28px;
+.register-card {
+  width: min(100%, 520px);
 }
 
-.register-container .login-left h1 {
-  max-width: 720px;
+.register-form {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 15px 16px;
+}
+
+.register-form .span-2 {
+  grid-column: 1 / -1;
+}
+
+.mb-input.is-invalid {
+  border-color: var(--danger);
+  background: #fff7f9;
+}
+
+.mb-input.is-invalid:focus {
+  box-shadow: 0 0 0 4px rgba(225, 29, 72, 0.12);
+}
+
+/* Medidor de seguridad de la contraseña */
+
+.password-meter {
+  display: grid;
+  gap: 8px;
+  margin-top: -2px;
+}
+
+.password-meter-track {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.password-meter-track span {
+  height: 5px;
+  background: var(--line-strong);
+  border-radius: var(--r-pill);
+  transition:
+    background-color var(--dur) var(--ease),
+    transform var(--dur) var(--ease);
+  transform-origin: left;
+}
+
+.password-meter-track span.is-on {
+  background: var(--warning);
+}
+
+.password-meter[data-score="3"] .password-meter-track span.is-on {
+  background: #65a30d;
+}
+
+.password-meter[data-score="4"] .password-meter-track span.is-on {
+  background: var(--emerald-600);
+}
+
+.password-meter small {
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
+.form-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--danger);
+  font-size: 13px;
+  font-weight: 600;
+  animation: fadeIn var(--dur) var(--ease) both;
+}
+
+@media (max-width: 560px) {
+  .register-form {
+    grid-template-columns: 1fr;
+  }
+
+  .register-form .span-2 {
+    grid-column: auto;
+  }
 }

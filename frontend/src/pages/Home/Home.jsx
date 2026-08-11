@@ -1,26 +1,46 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import productService from "../../services/productService";
+import categoryService from "../../services/categoryService";
 
 import ProductCard from "../../components/ProductCard";
+import Icon from "../../components/Icon";
+import EmptyState from "../../components/EmptyState";
+import { SkeletonGrid } from "../../components/Skeleton";
 
 import { useCart } from "../../context/CartContext";
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+
 import "./Home.css";
+
+const fallbackCategories = [
+  "Populares",
+  "Desayunos",
+  "Comidas",
+  "Bebidas",
+  "Snacks",
+];
+
+const categoryIcons = {
+  Todos: "sparkles",
+  Populares: "flame",
+  Desayunos: "coffee",
+  Comidas: "utensils",
+  Bebidas: "bottle",
+  Snacks: "snack",
+};
 
 function Home() {
   const [products, setProducts] = useState([]);
-
+  const [categories, setCategories] = useState(fallbackCategories);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("Todos");
 
-  const { total } = useCart();
-
+  const { total, items } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [search, setSearch] = useState("");
-
-  const [selectedCategory, setSelectedCategory] = useState("Todos");
 
   useEffect(() => {
     const loadProducts = async () => {
@@ -35,113 +55,185 @@ function Home() {
       }
     };
 
+    const loadCategories = async () => {
+      try {
+        const response = await categoryService.getCategories();
+
+        if (Array.isArray(response.data) && response.data.length > 0) {
+          setCategories(response.data.map((item) => item.nombre));
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
     loadProducts();
+    loadCategories();
   }, []);
 
-  const categories = ["Todos", "Desayunos", "Comidas", "Bebidas", "Snacks"];
+  const filteredProducts = useMemo(
+    () =>
+      products.filter((product) => {
+        const matchesSearch = product.nombre
+          .toLowerCase()
+          .includes(search.trim().toLowerCase());
 
-  const categoryIcons = {
-    Todos: "✨",
-    Desayunos: "☕",
-    Comidas: "🍽",
-    Bebidas: "🥤",
-    Snacks: "🍟",
-  };
+        const matchesCategory =
+          selectedCategory === "Todos"
+            ? true
+            : product.categoria === selectedCategory;
 
-  const filteredProducts = products.filter((product) => {
-    const matchesSearch = product.nombre
-      .toLowerCase()
-      .includes(search.toLowerCase());
-
-    const matchesCategory =
-      selectedCategory === "Todos" ? true : product.categoria === selectedCategory;
-
-    return matchesSearch && matchesCategory;
-  });
+        return matchesSearch && matchesCategory;
+      }),
+    [products, search, selectedCategory],
+  );
 
   const firstName = user?.nombre?.split(" ")[0] || "";
-  const userInitial = firstName.charAt(0).toUpperCase();
+  const userInitial = firstName.charAt(0).toUpperCase() || "U";
+
+  const tabs = ["Todos", ...categories];
 
   return (
-    <div className="home-content">
-      <header className="home-header">
-        <div className="search-shell">
-          <span className="search-icon">⌕</span>
+    <div className="home">
+      <header className="home-bar">
+        <div className="mb-input-icon home-search">
+          <Icon name="search" size={19} />
           <input
-            type="text"
+            type="search"
+            className="mb-input"
             placeholder="¿Qué se te antoja hoy?"
-            className="search-input"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
 
-        <div className="cart-total">
-          <div className="user-avatar">{userInitial}</div>
-          <span>{firstName}</span>
+        <div className="home-bar-user">
+          <div className="home-identity">
+            <span className="mb-avatar sm">{userInitial}</span>
+            <span>{firstName}</span>
+          </div>
 
           <button
             type="button"
-            className="cart-chip"
+            className="home-cart"
             onClick={() => navigate("/cart")}
           >
-            <span>🛒</span>
+            <span className="home-cart-icon">
+              <Icon name="cart" size={19} />
+              {items.length > 0 && <i>{items.length}</i>}
+            </span>
+
             <strong>${total.toFixed(2)}</strong>
           </button>
         </div>
       </header>
 
-      <section className="hero-banner">
-        <div className="hero-copy">
-          <span className="hero-kicker">UPMH Cafetería</span>
-          <h1>Pide desde tu salón, recoge sin filas.</h1>
-          <p>Elige tus favoritos, personaliza tu orden y llega directo por ella.</p>
+      <section className="home-hero">
+        <svg
+          className="home-hero-wave"
+          viewBox="0 0 320 260"
+          preserveAspectRatio="none"
+          aria-hidden="true"
+        >
+          <path
+            d="M320 0v260H92c74-46 108-96 108-150C200 66 176 26 132 0z"
+            fill="url(#heroWave)"
+          />
+          <defs>
+            <linearGradient id="heroWave" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="#ff9b7d" />
+              <stop offset="100%" stopColor="#ef6a4e" />
+            </linearGradient>
+          </defs>
+        </svg>
+
+        <div className="home-hero-copy">
+          <span className="home-hero-kicker">
+            <Icon name="store" size={14} />
+            Cafetería UPMH
+          </span>
+
+          <h1>
+            Pide desde tu salón,
+            <br />
+            recoge sin filas.
+          </h1>
+
+          <p>
+            Elige tus favoritos, personaliza tu orden y pásala a recoger en el
+            receso que prefieras.
+          </p>
         </div>
 
-        <div className="hero-metrics" aria-hidden="true">
+        <dl className="home-hero-stats">
           <div>
-            <strong>5</strong>
-            <span>Categorías</span>
+            <dt>Productos</dt>
+            <dd>{loading ? "—" : products.length}</dd>
           </div>
+
           <div>
-            <strong>0</strong>
-            <span>Filas</span>
+            <dt>Categorías</dt>
+            <dd>{categories.length}</dd>
           </div>
-        </div>
+        </dl>
       </section>
 
-      <div className="categories-container">
-        {categories.map((category) => (
+      <nav className="home-tabs" aria-label="Categorías">
+        {tabs.map((category, index) => (
           <button
             key={category}
-            className={
-              selectedCategory === category ? "category-btn active" : "category-btn"
-            }
+            type="button"
+            className={`mb-chip ${selectedCategory === category ? "is-active" : ""}`}
+            style={{ "--i": index }}
             onClick={() => setSelectedCategory(category)}
           >
-            <span>{categoryIcons[category]}</span>
+            <Icon name={categoryIcons[category] || "utensils"} size={16} />
             {category}
           </button>
         ))}
-      </div>
+      </nav>
 
-      <section className="products-section">
-        <div className="section-heading">
-          <h2 className="section-title">Favoritos de la semana</h2>
-          <span>{filteredProducts.length} productos</span>
+      <section className="home-products">
+        <div className="mb-section-head">
+          <h2>
+            {selectedCategory === "Todos"
+              ? "Favoritos de la semana"
+              : selectedCategory}
+          </h2>
+
+          <span>
+            {loading
+              ? "Cargando…"
+              : `${filteredProducts.length} ${
+                  filteredProducts.length === 1 ? "producto" : "productos"
+                }`}
+          </span>
         </div>
 
         {loading ? (
-          <p className="loading-text">Cargando...</p>
+          <SkeletonGrid count={6} className="home-grid" />
         ) : filteredProducts.length === 0 ? (
-          <div className="empty-products">
-            <h3>No encontramos productos</h3>
-            <p>Prueba con otra búsqueda o categoría.</p>
-          </div>
+          <EmptyState
+            icon="search"
+            title="No encontramos productos"
+            description="Prueba con otra búsqueda o cambia de categoría."
+            action={
+              <button
+                type="button"
+                className="mb-btn mb-btn-soft"
+                onClick={() => {
+                  setSearch("");
+                  setSelectedCategory("Todos");
+                }}
+              >
+                Limpiar filtros
+              </button>
+            }
+          />
         ) : (
-          <div className="products-grid">
-            {filteredProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
+          <div className="home-grid">
+            {filteredProducts.map((product, index) => (
+              <ProductCard key={product.id} product={product} index={index} />
             ))}
           </div>
         )}
