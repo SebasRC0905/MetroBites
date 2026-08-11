@@ -163,8 +163,10 @@ DROP TABLE IF EXISTS `metodos_pago`;
 CREATE TABLE `metodos_pago` (
   `id` int NOT NULL AUTO_INCREMENT,
   `usuario_id` int DEFAULT NULL,
-  `tipo` enum('efectivo','tarjeta','transferencia') NOT NULL,
+  `tipo` enum('efectivo','tarjeta_credito','tarjeta_debito','paypal','transferencia') NOT NULL,
+  `alias` varchar(60) DEFAULT NULL,
   `referencia` varchar(255) DEFAULT NULL,
+  `predeterminado` tinyint(1) NOT NULL DEFAULT '0',
   `activo` tinyint(1) DEFAULT '1',
   PRIMARY KEY (`id`),
   KEY `usuario_id` (`usuario_id`),
@@ -196,18 +198,21 @@ CREATE TABLE `pedidos` (
   `estado` enum('recibido','preparando','listo','entregado','cancelado') DEFAULT 'recibido',
   `estado_pago` enum('pendiente','pagado','cancelado') DEFAULT 'pendiente',
   `total` decimal(10,2) NOT NULL,
-  `metodo_pago` enum('efectivo','tarjeta','transferencia') NOT NULL,
+  `metodo_pago` enum('efectivo','tarjeta','paypal','transferencia') NOT NULL,
+  `metodo_pago_id` int DEFAULT NULL,
   `codigo_qr` varchar(100) NOT NULL,
   `creado_en` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `codigo_qr` (`codigo_qr`),
   KEY `horario_id` (`horario_id`),
   KEY `cupon_id` (`cupon_id`),
+  KEY `metodo_pago_id` (`metodo_pago_id`),
   KEY `idx_pedido_usuario` (`usuario_id`),
   KEY `idx_pedido_estado` (`estado`),
   CONSTRAINT `pedidos_ibfk_1` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`),
   CONSTRAINT `pedidos_ibfk_2` FOREIGN KEY (`horario_id`) REFERENCES `horarios_recoleccion` (`id`),
-  CONSTRAINT `pedidos_ibfk_3` FOREIGN KEY (`cupon_id`) REFERENCES `cupones` (`id`)
+  CONSTRAINT `pedidos_ibfk_3` FOREIGN KEY (`cupon_id`) REFERENCES `cupones` (`id`),
+  CONSTRAINT `pedidos_ibfk_4` FOREIGN KEY (`metodo_pago_id`) REFERENCES `metodos_pago` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 

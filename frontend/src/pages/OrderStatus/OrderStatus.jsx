@@ -1,5 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { QRCodeCanvas } from "qrcode.react";
+import toast from "react-hot-toast";
 
 import orderService from "../../services/orderService";
 
@@ -7,6 +9,21 @@ import Icon from "../../components/Icon";
 import { SkeletonLine } from "../../components/Skeleton";
 
 import "./OrderStatus.css";
+
+const paymentLabels = {
+  tarjeta_credito: "Tarjeta de crédito",
+  tarjeta_debito: "Tarjeta de débito",
+  paypal: "PayPal",
+  efectivo: "Efectivo",
+  tarjeta: "Tarjeta",
+  transferencia: "Transferencia",
+};
+
+const formatPaymentMethod = (order) => {
+  const label = paymentLabels[order.metodo_pago_tipo] || paymentLabels[order.metodo_pago] || order.metodo_pago;
+
+  return order.metodo_pago_alias ? `${label} · ${order.metodo_pago_alias}` : label;
+};
 
 const steps = [
   { key: "recibido", label: "Recibido", icon: "checkCircle" },
@@ -45,6 +62,24 @@ function OrderStatus() {
   const navigate = useNavigate();
 
   const [order, setOrder] = useState(null);
+
+  const qrRef = useRef(null);
+
+  const handleDownloadQr = () => {
+    const canvas = qrRef.current?.querySelector("canvas");
+
+    if (!canvas) {
+      return;
+    }
+
+    const link = document.createElement("a");
+
+    link.download = `metrobites-${order.codigo_qr}.png`;
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+
+    toast.success("Código QR descargado");
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -113,14 +148,30 @@ function OrderStatus() {
         <span className="status-order-id">Orden #{order.id}</span>
 
         <div className="status-ticket">
+          <div ref={qrRef} className="status-ticket-qr">
+            <QRCodeCanvas
+              value={order.codigo_qr}
+              size={148}
+              bgColor="#ffffff"
+              fgColor="#200645"
+              level="M"
+              marginSize={2}
+            />
+          </div>
+
           <div className="status-ticket-code">
             <span>Código de recolección</span>
             <strong>{order.codigo_qr}</strong>
-          </div>
 
-          <span className="status-ticket-icon">
-            <Icon name="qr" size={30} />
-          </span>
+            <button
+              type="button"
+              className="mb-btn mb-btn-ghost mb-btn-sm status-ticket-download"
+              onClick={handleDownloadQr}
+            >
+              <Icon name="qr" size={15} />
+              Descargar QR
+            </button>
+          </div>
         </div>
 
         <p className="status-hint">
@@ -214,6 +265,13 @@ function OrderStatus() {
           <div className="mb-stat">
             <span className="mb-stat-label">Pedido</span>
             <span className="mb-stat-value">#{order.id}</span>
+          </div>
+
+          <div className="mb-stat">
+            <span className="mb-stat-label">Método de pago</span>
+            <span className="mb-stat-value status-detail-payment">
+              {formatPaymentMethod(order)}
+            </span>
           </div>
         </div>
 

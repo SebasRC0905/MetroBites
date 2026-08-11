@@ -13,6 +13,7 @@ import Checkout from "./pages/Checkout/Checkout";
 import OrderStatus from "./pages/OrderStatus/OrderStatus";
 import OrderHistory from "./pages/OrderHistory/OrderHistory";
 import Profile from "./pages/Profile/Profile";
+import PaymentMethods from "./pages/PaymentMethods/PaymentMethods";
 
 import AdminDashboard from "./pages/AdminDashboard/AdminDashboard";
 import AdminProducts from "./pages/AdminProducts/AdminProducts";
@@ -60,6 +61,11 @@ function App() {
             <Route
               path="/profile"
               element={<Profile />}
+            />
+
+            <Route
+              path="/metodos-pago"
+              element={<PaymentMethods />}
             />
 
             <Route

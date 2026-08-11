@@ -25,6 +25,24 @@ const statusTones = {
   cancelado: "red",
 };
 
+const paymentLabels = {
+  tarjeta_credito: "Tarjeta de crédito",
+  tarjeta_debito: "Tarjeta de débito",
+  paypal: "PayPal",
+};
+
+const formatPaymentMethod = (order) => {
+  if (order.metodo_pago_tipo) {
+    const label = paymentLabels[order.metodo_pago_tipo] || order.metodo_pago;
+
+    return order.metodo_pago_alias
+      ? `${label} · ${order.metodo_pago_alias}`
+      : label;
+  }
+
+  return order.metodo_pago;
+};
+
 const statusTransitions = {
   recibido: ["recibido", "preparando", "cancelado"],
   preparando: ["preparando", "listo", "cancelado"],
@@ -233,7 +251,7 @@ function AdminOrders() {
 
                 <div>
                   <dt>Pago</dt>
-                  <dd className="is-capital">{order.metodo_pago}</dd>
+                  <dd className="is-capital">{formatPaymentMethod(order)}</dd>
                 </div>
 
                 <div>

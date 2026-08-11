@@ -96,15 +96,30 @@
   position: relative;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  max-width: 420px;
-  padding: 20px 22px;
+  gap: 24px;
+  max-width: 460px;
+  padding: 22px;
   margin: 22px auto 0;
   text-align: left;
   background: var(--surface-sunken);
   border: 1.5px dashed var(--violet-200);
   border-radius: var(--r-lg);
+}
+
+.status-ticket-qr {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  padding: 10px;
+  background: #ffffff;
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-xs);
+  line-height: 0;
+}
+
+.status-ticket-code {
+  min-width: 0;
+  flex: 1;
 }
 
 .status-ticket-code span {
@@ -121,20 +136,13 @@
   margin-top: 6px;
   color: var(--ink);
   font-family: "SFMono-Regular", ui-monospace, "Cascadia Mono", Consolas, monospace;
-  font-size: 19px;
+  font-size: 17px;
   letter-spacing: 0.02em;
   word-break: break-all;
 }
 
-.status-ticket-icon {
-  display: grid;
-  place-items: center;
-  width: 54px;
-  height: 54px;
-  flex: 0 0 auto;
-  color: var(--violet-700);
-  background: var(--violet-50);
-  border-radius: var(--r-md);
+.status-ticket-download {
+  margin-top: 12px;
 }
 
 .status-hint {
@@ -295,7 +303,7 @@
 
 .status-detail-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
   gap: 12px;
   margin-bottom: 22px;
 }
@@ -303,6 +311,10 @@
 .status-detail-state {
   font-size: 19px !important;
   text-transform: capitalize;
+}
+
+.status-detail-payment {
+  font-size: 16px !important;
 }
 
 .status-actions {
@@ -316,8 +328,13 @@
 
 @media (max-width: 640px) {
   .status-ticket {
-    align-items: flex-start;
+    align-items: center;
     flex-direction: column;
+    text-align: center;
+  }
+
+  .status-ticket-code strong {
+    word-break: break-word;
   }
 
   .status-detail-grid {

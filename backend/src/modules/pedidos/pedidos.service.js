@@ -15,6 +15,7 @@ const createOrder = async (
         const {
             horario_id,
             metodo_pago,
+            metodo_pago_id,
             productos,
             codigo_cupon
         } = orderData;
@@ -217,6 +218,35 @@ const createOrder = async (
 
         }
 
+        /*
+         Si se indicó un método de pago guardado, se valida que
+         exista y pertenezca al usuario antes de vincularlo al
+         pedido (nunca se confía en un id recibido del cliente).
+        */
+        let metodoPagoId = null;
+
+        if (metodo_pago_id) {
+
+            const [metodoRows] =
+                await connection.query(
+                    `
+                    SELECT id
+                    FROM metodos_pago
+                    WHERE id = ?
+                    AND usuario_id = ?
+                    AND activo = 1
+                    `,
+                    [metodo_pago_id, usuarioId]
+                );
+
+            if (metodoRows.length === 0) {
+                throw new Error('El método de pago guardado no es válido');
+            }
+
+            metodoPagoId = metodoRows[0].id;
+
+        }
+
         const codigoQR =
             `MB-${Date.now()}`;
 
@@ -232,10 +262,11 @@ const createOrder = async (
                     estado_pago,
                     total,
                     metodo_pago,
+                    metodo_pago_id,
                     codigo_qr
                 )
                 VALUES
-                (?, ?, ?, 'recibido', 'pendiente', ?, ?, ?)
+                (?, ?, ?, 'recibido', 'pendiente', ?, ?, ?, ?)
                 `,
                 [
                     usuarioId,
@@ -243,6 +274,7 @@ const createOrder = async (
                     cuponId,
                     totalPedido,
                     metodo_pago,
+                    metodoPagoId,
                     codigoQR
                 ]
             );
@@ -330,16 +362,21 @@ const getUserOrders = async (
         await pool.query(
             `
             SELECT
-                id,
-                estado,
-                estado_pago,
-                total,
-                metodo_pago,
-                codigo_qr,
-                creado_en
-            FROM pedidos
-            WHERE usuario_id = ?
-            ORDER BY creado_en DESC
+                p.id,
+                p.estado,
+                p.estado_pago,
+                p.total,
+                p.metodo_pago,
+                mp.tipo AS metodo_pago_tipo,
+                mp.alias AS metodo_pago_alias,
+                mp.referencia AS metodo_pago_referencia,
+                p.codigo_qr,
+                p.creado_en
+            FROM pedidos p
+            LEFT JOIN metodos_pago mp
+                ON p.metodo_pago_id = mp.id
+            WHERE p.usuario_id = ?
+            ORDER BY p.creado_en DESC
             `,
             [usuarioId]
         );
@@ -360,6 +397,9 @@ const getOrderById = async (
                 p.estado_pago,
                 p.total,
                 p.metodo_pago,
+                mp.tipo AS metodo_pago_tipo,
+                mp.alias AS metodo_pago_alias,
+                mp.referencia AS metodo_pago_referencia,
                 p.codigo_qr,
                 p.creado_en,
                 c.codigo AS cupon_codigo,
@@ -367,6 +407,8 @@ const getOrderById = async (
             FROM pedidos p
             LEFT JOIN cupones c
                 ON p.cupon_id = c.id
+            LEFT JOIN metodos_pago mp
+                ON p.metodo_pago_id = mp.id
             WHERE p.id = ?
             AND p.usuario_id = ?
             `,
@@ -445,11 +487,16 @@ const getAllOrders = async () => {
                 p.estado_pago,
                 p.total,
                 p.metodo_pago,
+                mp.tipo AS metodo_pago_tipo,
+                mp.alias AS metodo_pago_alias,
+                mp.referencia AS metodo_pago_referencia,
                 p.codigo_qr,
                 p.creado_en
             FROM pedidos p
             INNER JOIN usuarios u
                 ON p.usuario_id = u.id
+            LEFT JOIN metodos_pago mp
+                ON p.metodo_pago_id = mp.id
             ORDER BY p.creado_en DESC
             `
         );

@@ -12,6 +12,7 @@ const usuariosRoutes = require('./modules/usuarios/usuarios.routes');
 const uploadsRoutes = require('../uploads/uploads.routes');
 const cuponesRoutes = require('./modules/cupones/cupones.routes');
 const climaRoutes = require('./modules/clima/clima.routes');
+const metodosPagoRoutes = require('./modules/metodosPago/metodosPago.routes');
 const app = express();
 
 app.use(cors());
@@ -69,5 +70,9 @@ app.use(
 app.use(
     '/api/clima',
     climaRoutes
+);
+app.use(
+    '/api/metodos-pago',
+    metodosPagoRoutes
 );
 module.exports = app;

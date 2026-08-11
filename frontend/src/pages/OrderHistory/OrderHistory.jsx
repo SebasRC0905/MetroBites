@@ -24,6 +24,15 @@ const filters = [
   { key: "cancelado", label: "Cancelados" },
 ];
 
+const paymentLabels = {
+  tarjeta_credito: "Crédito",
+  tarjeta_debito: "Débito",
+  paypal: "PayPal",
+};
+
+const formatPaymentMethod = (order) =>
+  paymentLabels[order.metodo_pago_tipo] || order.metodo_pago;
+
 const formatDate = (value) => {
   if (!value) {
     return "";
@@ -201,7 +210,7 @@ function OrderHistory() {
                   <span className="history-dot" />
 
                   <Icon name="wallet" size={14} />
-                  {order.metodo_pago}
+                  {formatPaymentMethod(order)}
                 </p>
               </div>
 

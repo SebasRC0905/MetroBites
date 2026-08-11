@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
 import { useCart } from "../../context/CartContext";
@@ -7,6 +7,7 @@ import { useCart } from "../../context/CartContext";
 import horarioService from "../../services/horarioService";
 import pedidoService from "../../services/pedidoService";
 import couponService from "../../services/couponService";
+import paymentMethodService from "../../services/paymentMethodService";
 
 import Icon from "../../components/Icon";
 import EmptyState from "../../components/EmptyState";
@@ -21,6 +22,14 @@ const formatHour = (value) => {
   return String(value).slice(0, 5);
 };
 
+const cardTypes = ["tarjeta_credito", "tarjeta_debito"];
+
+const methodLabels = {
+  tarjeta_credito: "Crédito",
+  tarjeta_debito: "Débito",
+  paypal: "PayPal",
+};
+
 function Checkout() {
   const navigate = useNavigate();
 
@@ -32,6 +41,9 @@ function Checkout() {
 
   const [metodoPago, setMetodoPago] = useState("efectivo");
 
+  const [savedMethods, setSavedMethods] = useState([]);
+  const [selectedMethodId, setSelectedMethodId] = useState(null);
+
   const [submitting, setSubmitting] = useState(false);
 
   const [couponCode, setCouponCode] = useState("");
@@ -40,7 +52,7 @@ function Checkout() {
   const [validatingCoupon, setValidatingCoupon] = useState(false);
 
   useEffect(() => {
-    const loadHorarios = async () => {
+    const init = async () => {
       try {
         const response = await horarioService.getHorarios();
 
@@ -50,10 +62,48 @@ function Checkout() {
 
         toast.error("No pudimos cargar los horarios");
       }
+
+      try {
+        const response = await paymentMethodService.getMethods();
+
+        setSavedMethods(response.data);
+      } catch (error) {
+        console.error(error);
+      }
     };
 
-    loadHorarios();
+    init();
   }, []);
+
+  const methodsForCategory = useMemo(() => {
+    if (metodoPago === "tarjeta") {
+      return savedMethods.filter((item) => cardTypes.includes(item.tipo));
+    }
+
+    if (metodoPago === "paypal") {
+      return savedMethods.filter((item) => item.tipo === "paypal");
+    }
+
+    return [];
+  }, [savedMethods, metodoPago]);
+
+  useEffect(() => {
+    const pickDefaultMethod = () => {
+      if (methodsForCategory.length === 0) {
+        setSelectedMethodId(null);
+
+        return;
+      }
+
+      const preferido =
+        methodsForCategory.find((item) => item.predeterminado) ||
+        methodsForCategory[0];
+
+      setSelectedMethodId(preferido.id);
+    };
+
+    pickDefaultMethod();
+  }, [methodsForCategory]);
 
   const finalTotal = appliedCoupon ? appliedCoupon.total : total;
 
@@ -124,6 +174,10 @@ function Checkout() {
         productos,
 
         ...(appliedCoupon ? { codigo_cupon: appliedCoupon.codigo } : {}),
+
+        ...(selectedMethodId && metodoPago !== "efectivo"
+          ? { metodo_pago_id: selectedMethodId }
+          : {}),
       });
 
       clearCart();
@@ -268,13 +322,73 @@ function Checkout() {
                 <span className="mb-option-mark" />
 
                 <span className="mb-option-body">
-                  <strong>Tarjeta de débito/crédito</strong>
+                  <strong>Tarjeta de crédito o débito</strong>
                   <span>Terminal disponible en la caja.</span>
                 </span>
 
                 <Icon name="card" size={22} />
               </label>
+
+              <label className="mb-option">
+                <input
+                  type="radio"
+                  name="pago"
+                  value="paypal"
+                  checked={metodoPago === "paypal"}
+                  onChange={(e) => setMetodoPago(e.target.value)}
+                />
+
+                <span className="mb-option-mark" />
+
+                <span className="mb-option-body">
+                  <strong>PayPal</strong>
+                  <span>Se concilia con tu cuenta al recoger.</span>
+                </span>
+
+                <Icon name="wallet" size={22} />
+              </label>
             </div>
+
+            {(metodoPago === "tarjeta" || metodoPago === "paypal") && (
+              <div className="checkout-saved-methods">
+                {methodsForCategory.length === 0 ? (
+                  <p className="checkout-no-methods">
+                    <Icon name="alert" size={15} />
+                    No tienes {metodoPago === "paypal" ? "PayPal" : "tarjetas"}{" "}
+                    guardadas.{" "}
+                    <Link to="/metodos-pago">Agrega una en tu perfil</Link>.
+                  </p>
+                ) : (
+                  <>
+                    <span className="checkout-saved-label">
+                      Elige el método guardado
+                    </span>
+
+                    <div className="checkout-saved-list">
+                      {methodsForCategory.map((method) => (
+                        <button
+                          key={method.id}
+                          type="button"
+                          className={`checkout-saved-chip ${
+                            selectedMethodId === method.id ? "is-active" : ""
+                          }`}
+                          onClick={() => setSelectedMethodId(method.id)}
+                        >
+                          <Icon
+                            name={method.tipo === "paypal" ? "wallet" : "card"}
+                            size={16}
+                          />
+                          <span>
+                            {method.alias || methodLabels[method.tipo]}
+                          </span>
+                          <small>{method.referencia}</small>
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
           </section>
 
           <section className="checkout-step mb-reveal" style={{ "--i": 2 }}>

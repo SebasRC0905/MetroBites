@@ -910,6 +910,67 @@
   font-size: 14px;
 }
 
+/* ---------- Tarjetas de formulario ---------- */
+
+.mb-form-card {
+  padding: clamp(20px, 2.6vw, 26px);
+  margin-bottom: 22px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-sm);
+  animation: fadeUp 0.4s var(--ease) both;
+}
+
+.mb-form-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 20px;
+}
+
+.mb-form-head h2 {
+  font-size: 19px;
+}
+
+.mb-form-head p {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 13.5px;
+}
+
+.mb-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.mb-form-grid .full {
+  grid-column: 1 / -1;
+}
+
+.mb-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+@media (max-width: 640px) {
+  .mb-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .mb-form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .mb-form-actions .mb-btn {
+    width: 100%;
+  }
+}
+
 /* ---------- Utilidades ---------- */
 
 .mb-reveal {

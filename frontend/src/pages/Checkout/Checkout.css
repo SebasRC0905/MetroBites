@@ -158,6 +158,95 @@
   color: var(--coral-600);
 }
 
+.checkout-payments .mb-option svg {
+  color: var(--muted);
+  flex: 0 0 auto;
+}
+
+.checkout-payments .mb-option:has(input:checked) svg {
+  color: var(--coral-600);
+}
+
+/* ---------- Métodos guardados ---------- */
+
+.checkout-saved-methods {
+  padding-top: 16px;
+  margin-top: 6px;
+  border-top: 1px dashed var(--line-strong);
+  animation: fadeIn var(--dur) var(--ease) both;
+}
+
+.checkout-saved-label {
+  display: block;
+  margin-bottom: 10px;
+  color: var(--ink-soft);
+  font-family: var(--font-display);
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+.checkout-no-methods {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 13.5px;
+}
+
+.checkout-no-methods a {
+  color: var(--violet-700);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.checkout-saved-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.checkout-saved-chip {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 14px;
+  color: var(--ink-soft);
+  background: var(--surface-sunken);
+  border: 1.5px solid var(--line-strong);
+  border-radius: var(--r-pill);
+  font-size: 13px;
+  font-weight: 700;
+  transition:
+    border-color var(--dur) var(--ease),
+    background-color var(--dur) var(--ease),
+    color var(--dur) var(--ease),
+    transform var(--dur-fast) var(--ease);
+}
+
+.checkout-saved-chip:hover {
+  transform: translateY(-2px);
+}
+
+.checkout-saved-chip svg {
+  color: var(--muted);
+}
+
+.checkout-saved-chip small {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.checkout-saved-chip.is-active {
+  color: var(--violet-800);
+  background: var(--violet-50);
+  border-color: var(--violet-600);
+}
+
+.checkout-saved-chip.is-active svg {
+  color: var(--violet-700);
+}
+
 /* ---------- Cupón ---------- */
 
 .coupon-form {

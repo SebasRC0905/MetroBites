@@ -1,0 +1,175 @@
+/* ============================================================
+   Métodos de pago del alumno
+   ============================================================ */
+
+.payment-methods {
+  max-width: 1080px;
+}
+
+.payment-methods .mb-page-head {
+  align-items: flex-start;
+}
+
+.payment-methods-notice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 16px;
+  margin-bottom: 22px;
+  color: var(--violet-800);
+  background: var(--violet-50);
+  border: 1px solid var(--violet-100);
+  border-radius: var(--r-md);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.payment-methods-notice svg {
+  flex: 0 0 auto;
+  color: var(--violet-700);
+}
+
+/* ---------- Selector de tipo ---------- */
+
+.payment-type-picker {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.payment-type-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 12px;
+  color: var(--muted);
+  background: var(--surface-sunken);
+  border: 1.5px solid var(--line-strong);
+  border-radius: var(--r-md);
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  transition:
+    transform var(--dur-fast) var(--ease),
+    color var(--dur) var(--ease),
+    border-color var(--dur) var(--ease),
+    background-color var(--dur) var(--ease);
+}
+
+.payment-type-option:hover {
+  transform: translateY(-2px);
+  border-color: var(--violet-200);
+}
+
+.payment-type-option.is-active {
+  color: var(--violet-800);
+  background: var(--violet-50);
+  border-color: var(--violet-600);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+}
+
+/* ---------- Tarjetas guardadas ---------- */
+
+.payment-methods-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 16px;
+}
+
+.payment-method-card {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-xs);
+  transition:
+    transform var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease),
+    border-color var(--dur) var(--ease);
+}
+
+.payment-method-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--violet-200);
+  box-shadow: var(--shadow-md);
+}
+
+.payment-method-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.payment-method-icon {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  color: var(--violet-700);
+  background: var(--violet-100);
+  border-radius: 13px;
+}
+
+.payment-method-icon.paypal {
+  color: #1a5cb0;
+  background: #e8f0fc;
+}
+
+.payment-method-default-btn {
+  color: var(--violet-700);
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color var(--dur) var(--ease);
+}
+
+.payment-method-default-btn:hover {
+  color: var(--coral-600);
+}
+
+.payment-method-alias {
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 16.5px;
+}
+
+.payment-method-type {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.payment-method-reference {
+  margin: 12px 0 18px;
+  padding: 10px 12px;
+  color: var(--ink-soft);
+  background: var(--surface-sunken);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  font-family: "SFMono-Regular", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.payment-method-card .mb-btn {
+  margin-top: auto;
+}
+
+@media (max-width: 560px) {
+  .payment-type-picker {
+    grid-template-columns: 1fr;
+  }
+
+  .payment-methods-grid {
+    grid-template-columns: 1fr;
+  }
+}

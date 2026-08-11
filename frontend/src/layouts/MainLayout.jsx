@@ -14,6 +14,7 @@ const navItems = [
   { to: "/home", label: "Menú principal", icon: "home" },
   { to: "/favoritos", label: "Favoritos", icon: "heart" },
   { to: "/profile", label: "Perfil y salud", icon: "user" },
+  { to: "/metodos-pago", label: "Método de pago", icon: "card" },
   { to: "/historial", label: "Mis pedidos", icon: "receipt" },
   { to: "/cart", label: "Mi carrito", icon: "cart" },
 ];
