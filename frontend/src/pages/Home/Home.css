@@ -196,6 +196,10 @@
   letter-spacing: -0.03em;
 }
 
+.home > .weather-widget {
+  margin-bottom: 22px;
+}
+
 /* ---------- Categorías ---------- */
 
 .home-tabs {

@@ -10,6 +10,8 @@ const pedidosRoutes = require('./modules/pedidos/pedidos.routes');
 const dashboardRoutes =require('./modules/dashboard/dashboard.routes');
 const usuariosRoutes = require('./modules/usuarios/usuarios.routes');
 const uploadsRoutes = require('../uploads/uploads.routes');
+const cuponesRoutes = require('./modules/cupones/cupones.routes');
+const climaRoutes = require('./modules/clima/clima.routes');
 const app = express();
 
 app.use(cors());
@@ -59,5 +61,13 @@ app.use(
 app.use(
     '/api/uploads',
     uploadsRoutes
+);
+app.use(
+    '/api/cupones',
+    cuponesRoutes
+);
+app.use(
+    '/api/clima',
+    climaRoutes
 );
 module.exports = app;

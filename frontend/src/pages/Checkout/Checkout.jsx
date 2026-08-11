@@ -6,6 +6,7 @@ import { useCart } from "../../context/CartContext";
 
 import horarioService from "../../services/horarioService";
 import pedidoService from "../../services/pedidoService";
+import couponService from "../../services/couponService";
 
 import Icon from "../../components/Icon";
 import EmptyState from "../../components/EmptyState";
@@ -33,6 +34,11 @@ function Checkout() {
 
   const [submitting, setSubmitting] = useState(false);
 
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [couponError, setCouponError] = useState("");
+  const [validatingCoupon, setValidatingCoupon] = useState(false);
+
   useEffect(() => {
     const loadHorarios = async () => {
       try {
@@ -48,6 +54,45 @@ function Checkout() {
 
     loadHorarios();
   }, []);
+
+  const finalTotal = appliedCoupon ? appliedCoupon.total : total;
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) {
+      setCouponError("Ingresa un código de cupón");
+
+      return;
+    }
+
+    try {
+      setValidatingCoupon(true);
+      setCouponError("");
+
+      const response = await couponService.validateCoupon(
+        couponCode.trim(),
+        total,
+      );
+
+      setAppliedCoupon(response.data);
+
+      toast.success(`Cupón ${response.data.codigo} aplicado`);
+    } catch (error) {
+      console.error(error);
+
+      setAppliedCoupon(null);
+      setCouponError(
+        error.response?.data?.message || "No pudimos validar el cupón",
+      );
+    } finally {
+      setValidatingCoupon(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCode("");
+    setCouponError("");
+  };
 
   const handleCheckout = async () => {
     if (!horarioId) {
@@ -77,6 +122,8 @@ function Checkout() {
         metodo_pago: metodoPago,
 
         productos,
+
+        ...(appliedCoupon ? { codigo_cupon: appliedCoupon.codigo } : {}),
       });
 
       clearCart();
@@ -229,6 +276,75 @@ function Checkout() {
               </label>
             </div>
           </section>
+
+          <section className="checkout-step mb-reveal" style={{ "--i": 2 }}>
+            <div className="checkout-step-head">
+              <span className="checkout-step-number">3</span>
+
+              <div>
+                <h2>¿Tienes un cupón?</h2>
+                <p>Aplica un código de descuento a este pedido.</p>
+              </div>
+            </div>
+
+            {appliedCoupon ? (
+              <div className="coupon-applied">
+                <span className="coupon-applied-icon">
+                  <Icon name="tag" size={18} />
+                </span>
+
+                <div>
+                  <strong>{appliedCoupon.codigo}</strong>
+                  <span>Descuento de ${appliedCoupon.descuento.toFixed(2)}</span>
+                </div>
+
+                <button
+                  type="button"
+                  className="mb-btn mb-btn-ghost mb-btn-sm"
+                  onClick={handleRemoveCoupon}
+                >
+                  <Icon name="close" size={15} />
+                  Quitar
+                </button>
+              </div>
+            ) : (
+              <div className="coupon-form">
+                <input
+                  className="mb-input"
+                  type="text"
+                  placeholder="Código de descuento…"
+                  value={couponCode}
+                  onChange={(e) => {
+                    setCouponCode(e.target.value);
+                    setCouponError("");
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleApplyCoupon();
+                    }
+                  }}
+                />
+
+                <button
+                  type="button"
+                  className="mb-btn mb-btn-soft"
+                  onClick={handleApplyCoupon}
+                  disabled={validatingCoupon}
+                >
+                  {validatingCoupon ? <span className="mb-spinner" /> : null}
+                  Aplicar
+                </button>
+              </div>
+            )}
+
+            {couponError && (
+              <p className="coupon-error">
+                <Icon name="alert" size={15} />
+                {couponError}
+              </p>
+            )}
+          </section>
         </div>
 
         <aside className="checkout-summary">
@@ -256,9 +372,23 @@ function Checkout() {
             ))}
           </ul>
 
+          <div className="checkout-subtotal-rows">
+            <div>
+              <span>Subtotal</span>
+              <strong>${total.toFixed(2)}</strong>
+            </div>
+
+            {appliedCoupon && (
+              <div className="is-discount">
+                <span>Cupón {appliedCoupon.codigo}</span>
+                <strong>-${appliedCoupon.descuento.toFixed(2)}</strong>
+              </div>
+            )}
+          </div>
+
           <div className="checkout-total">
             <span>Total</span>
-            <strong>${total.toFixed(2)}</strong>
+            <strong>${finalTotal.toFixed(2)}</strong>
           </div>
 
           <button

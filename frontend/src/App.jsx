@@ -6,6 +6,7 @@ import Login from "./pages/Login/Login";
 import Register from "./pages/Register/Register";
 
 import Home from "./pages/Home/Home";
+import Favorites from "./pages/Favorites/Favorites";
 import ProductDetail from "./pages/ProductDetail/ProductDetail";
 import Cart from "./pages/Cart/Cart";
 import Checkout from "./pages/Checkout/Checkout";
@@ -17,6 +18,7 @@ import AdminDashboard from "./pages/AdminDashboard/AdminDashboard";
 import AdminProducts from "./pages/AdminProducts/AdminProducts";
 import AdminOrders from "./pages/AdminOrders/AdminOrders";
 import AdminUsers from "./pages/AdminUsers/AdminUsers";
+import AdminCoupons from "./pages/AdminCoupons/AdminCoupons";
 
 import MainLayout from "./layouts/MainLayout";
 import AdminLayout from "./layouts/AdminLayout/AdminLayout";
@@ -48,6 +50,11 @@ function App() {
             <Route
               path="/home"
               element={<Home />}
+            />
+
+            <Route
+              path="/favoritos"
+              element={<Favorites />}
             />
 
             <Route
@@ -110,6 +117,11 @@ function App() {
             <Route
               path="/admin/usuarios"
               element={<AdminUsers />}
+            />
+
+            <Route
+              path="/admin/cupones"
+              element={<AdminCoupons />}
             />
 
           </Route>

@@ -52,6 +52,35 @@
   border-radius: 18px;
 }
 
+.product-favorite {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  color: var(--ink-soft);
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 50%;
+  backdrop-filter: blur(8px);
+  transition:
+    color var(--dur) var(--ease),
+    background-color var(--dur) var(--ease),
+    transform var(--dur-fast) var(--ease);
+}
+
+.product-favorite:hover {
+  color: var(--coral-600);
+  transform: scale(1.08);
+}
+
+.product-favorite.is-active {
+  color: var(--coral-500);
+  background: #ffffff;
+  animation: popIn 0.3s var(--ease-out) both;
+}
+
 .product-tag {
   position: absolute;
   top: 12px;

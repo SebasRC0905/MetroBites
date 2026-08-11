@@ -13,6 +13,7 @@ const adminNav = [
   { to: "/admin/productos", label: "Productos", icon: "package" },
   { to: "/admin/pedidos", label: "Pedidos", icon: "receipt" },
   { to: "/admin/usuarios", label: "Usuarios", icon: "users" },
+  { to: "/admin/cupones", label: "Cupones", icon: "tag" },
 ];
 
 const titles = {
@@ -20,6 +21,7 @@ const titles = {
   "/admin/productos": "Catálogo de productos",
   "/admin/pedidos": "Operación de pedidos",
   "/admin/usuarios": "Comunidad y accesos",
+  "/admin/cupones": "Cupones de descuento",
 };
 
 function AdminLayout() {

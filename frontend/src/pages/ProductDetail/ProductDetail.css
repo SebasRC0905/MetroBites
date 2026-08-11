@@ -81,8 +81,40 @@
   margin-bottom: 16px;
 }
 
+.detail-title-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
 .detail-info h1 {
+  max-width: 620px;
   font-size: clamp(28px, 3.6vw, 42px);
+}
+
+.detail-favorite {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+  color: var(--muted);
+  background: var(--surface-muted);
+  border-radius: 50%;
+  transition:
+    color var(--dur) var(--ease),
+    background-color var(--dur) var(--ease),
+    transform var(--dur-fast) var(--ease);
+}
+
+.detail-favorite:hover {
+  color: var(--coral-600);
+  transform: scale(1.06);
+}
+
+.detail-favorite.is-active {
+  color: var(--coral-500);
+  background: var(--coral-50);
 }
 
 .detail-description {

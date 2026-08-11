@@ -158,7 +158,104 @@
   color: var(--coral-600);
 }
 
+/* ---------- Cupón ---------- */
+
+.coupon-form {
+  display: flex;
+  gap: 10px;
+}
+
+.coupon-form .mb-input {
+  flex: 1;
+  text-transform: uppercase;
+}
+
+.coupon-form .mb-input::placeholder {
+  text-transform: none;
+}
+
+.coupon-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  color: var(--danger);
+  font-size: 13px;
+  font-weight: 600;
+  animation: fadeIn var(--dur) var(--ease) both;
+}
+
+.coupon-applied {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 14px 16px;
+  background: var(--emerald-50);
+  border: 1.5px solid rgba(14, 159, 110, 0.3);
+  border-radius: var(--r-md);
+  animation: popIn 0.3s var(--ease-out) both;
+}
+
+.coupon-applied-icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  color: var(--emerald-700);
+  background: #ffffff;
+  border-radius: 12px;
+}
+
+.coupon-applied > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.coupon-applied strong {
+  display: block;
+  color: var(--emerald-700);
+  font-family: var(--font-display);
+  font-size: 15px;
+  letter-spacing: 0.02em;
+}
+
+.coupon-applied span {
+  display: block;
+  margin-top: 2px;
+  color: var(--ink-soft);
+  font-size: 12.5px;
+}
+
 /* ---------- Resumen ---------- */
+
+.checkout-subtotal-rows {
+  display: grid;
+  gap: 2px;
+}
+
+.checkout-subtotal-rows div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 9px 0;
+  font-size: 13.5px;
+}
+
+.checkout-subtotal-rows span {
+  color: var(--muted);
+}
+
+.checkout-subtotal-rows strong {
+  color: var(--ink);
+  font-family: var(--font-display);
+}
+
+.checkout-subtotal-rows .is-discount span,
+.checkout-subtotal-rows .is-discount strong {
+  color: var(--emerald-600);
+}
 
 .checkout-summary {
   position: sticky;

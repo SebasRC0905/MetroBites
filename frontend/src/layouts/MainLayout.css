@@ -181,6 +181,11 @@
   animation: popIn 0.3s var(--ease-out) both;
 }
 
+.app-nav-count.is-soft {
+  color: var(--violet-700);
+  background: var(--violet-100);
+}
+
 .app-sidebar-foot {
   margin-top: auto;
   padding-top: 18px;

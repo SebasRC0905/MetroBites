@@ -15,7 +15,8 @@ const createOrder = async (
         const {
             horario_id,
             metodo_pago,
-            productos
+            productos,
+            codigo_cupon
         } = orderData;
 
         /*
@@ -165,6 +166,57 @@ const createOrder = async (
             });
         }
 
+        let cuponId = null;
+        let descuento = 0;
+
+        if (codigo_cupon) {
+
+            const [cuponRows] =
+                await connection.query(
+                    `
+                    SELECT *
+                    FROM cupones
+                    WHERE codigo = ?
+                    `,
+                    [codigo_cupon.trim().toUpperCase()]
+                );
+
+            if (cuponRows.length === 0) {
+                throw new Error('El cupón no existe');
+            }
+
+            const cupon = cuponRows[0];
+
+            if (cupon.valido_hasta) {
+
+                const hoy = new Date();
+                const vencimiento = new Date(cupon.valido_hasta);
+
+                hoy.setHours(0, 0, 0, 0);
+                vencimiento.setHours(0, 0, 0, 0);
+
+                if (vencimiento < hoy) {
+                    throw new Error('El cupón ya venció');
+                }
+
+            }
+
+            if (totalPedido < Number(cupon.compra_minima)) {
+                throw new Error(
+                    `Compra mínima de $${Number(cupon.compra_minima).toFixed(2)} para usar este cupón`
+                );
+            }
+
+            cuponId = cupon.id;
+            descuento = Math.min(
+                Number(cupon.monto_descuento),
+                totalPedido
+            );
+
+            totalPedido -= descuento;
+
+        }
+
         const codigoQR =
             `MB-${Date.now()}`;
 
@@ -175,6 +227,7 @@ const createOrder = async (
                 (
                     usuario_id,
                     horario_id,
+                    cupon_id,
                     estado,
                     estado_pago,
                     total,
@@ -182,11 +235,12 @@ const createOrder = async (
                     codigo_qr
                 )
                 VALUES
-                (?, ?, 'recibido', 'pendiente', ?, ?, ?)
+                (?, ?, ?, 'recibido', 'pendiente', ?, ?, ?)
                 `,
                 [
                     usuarioId,
                     horario_id,
+                    cuponId,
                     totalPedido,
                     metodo_pago,
                     codigoQR
@@ -252,6 +306,7 @@ const createOrder = async (
         return {
             pedidoId,
             totalPedido,
+            descuento,
             codigoQR
         };
 
@@ -300,16 +355,20 @@ const getOrderById = async (
         await pool.query(
             `
             SELECT
-                id,
-                estado,
-                estado_pago,
-                total,
-                metodo_pago,
-                codigo_qr,
-                creado_en
-            FROM pedidos
-            WHERE id = ?
-            AND usuario_id = ?
+                p.id,
+                p.estado,
+                p.estado_pago,
+                p.total,
+                p.metodo_pago,
+                p.codigo_qr,
+                p.creado_en,
+                c.codigo AS cupon_codigo,
+                c.monto_descuento AS cupon_descuento
+            FROM pedidos p
+            LEFT JOIN cupones c
+                ON p.cupon_id = c.id
+            WHERE p.id = ?
+            AND p.usuario_id = ?
             `,
             [
                 pedidoId,

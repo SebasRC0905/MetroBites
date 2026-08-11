@@ -35,6 +35,12 @@ const shortcuts = [
     title: "Usuarios",
     text: "Administra alumnos, empleados y accesos.",
   },
+  {
+    to: "/admin/cupones",
+    icon: "tag",
+    title: "Cupones",
+    text: "Crea códigos de descuento para promociones.",
+  },
 ];
 
 const currency = (value) =>

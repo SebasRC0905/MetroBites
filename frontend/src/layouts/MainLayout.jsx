@@ -6,11 +6,13 @@ import Logo from "../components/Logo";
 
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
+import { useFavorites } from "../context/FavoritesContext";
 
 import "./MainLayout.css";
 
 const navItems = [
   { to: "/home", label: "Menú principal", icon: "home" },
+  { to: "/favoritos", label: "Favoritos", icon: "heart" },
   { to: "/profile", label: "Perfil y salud", icon: "user" },
   { to: "/historial", label: "Mis pedidos", icon: "receipt" },
   { to: "/cart", label: "Mi carrito", icon: "cart" },
@@ -19,6 +21,7 @@ const navItems = [
 function MainLayout() {
   const { user, logout } = useAuth();
   const { items } = useCart();
+  const { favorites } = useFavorites();
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -85,6 +88,10 @@ function MainLayout() {
 
               {item.to === "/cart" && items.length > 0 && (
                 <span className="app-nav-count">{items.length}</span>
+              )}
+
+              {item.to === "/favoritos" && favorites.length > 0 && (
+                <span className="app-nav-count is-soft">{favorites.length}</span>
               )}
             </NavLink>
           ))}

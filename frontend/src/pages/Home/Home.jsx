@@ -8,6 +8,7 @@ import ProductCard from "../../components/ProductCard";
 import Icon from "../../components/Icon";
 import EmptyState from "../../components/EmptyState";
 import { SkeletonGrid } from "../../components/Skeleton";
+import WeatherWidget from "../../components/WeatherWidget";
 
 import { useCart } from "../../context/CartContext";
 import { useAuth } from "../../context/AuthContext";
@@ -178,6 +179,16 @@ function Home() {
         </dl>
       </section>
 
+      <WeatherWidget
+        onSuggest={(categoria) => {
+          setSelectedCategory(categoria);
+
+          document
+            .getElementById("home-products")
+            ?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }}
+      />
+
       <nav className="home-tabs" aria-label="Categorías">
         {tabs.map((category, index) => (
           <button
@@ -193,7 +204,7 @@ function Home() {
         ))}
       </nav>
 
-      <section className="home-products">
+      <section id="home-products" className="home-products">
         <div className="mb-section-head">
           <h2>
             {selectedCategory === "Todos"

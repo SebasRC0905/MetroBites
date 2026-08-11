@@ -8,6 +8,7 @@ import Icon from "../../components/Icon";
 import { SkeletonLine } from "../../components/Skeleton";
 
 import { useCart } from "../../context/CartContext";
+import { useFavorites } from "../../context/FavoritesContext";
 import "./ProductDetail.css";
 
 const API_URL = "http://localhost:3000";
@@ -18,6 +19,8 @@ function ProductDetail() {
   const navigate = useNavigate();
 
   const { addItem } = useCart();
+
+  const { isFavorite, toggleFavorite } = useFavorites();
 
   const [product, setProduct] = useState(null);
 
@@ -92,6 +95,16 @@ function ProductDetail() {
     navigate("/home");
   };
 
+  const handleToggleFavorite = async () => {
+    try {
+      await toggleFavorite(product);
+    } catch (error) {
+      console.error(error);
+
+      toast.error("No pudimos actualizar tus favoritos");
+    }
+  };
+
   if (loading) {
     return (
       <div className="detail">
@@ -163,7 +176,27 @@ function ProductDetail() {
             </span>
           </div>
 
-          <h1>{product.nombre}</h1>
+          <div className="detail-title-row">
+            <h1>{product.nombre}</h1>
+
+            <button
+              type="button"
+              className={`detail-favorite ${isFavorite(product.id) ? "is-active" : ""}`}
+              aria-pressed={isFavorite(product.id)}
+              aria-label={
+                isFavorite(product.id)
+                  ? "Quitar de favoritos"
+                  : "Agregar a favoritos"
+              }
+              onClick={handleToggleFavorite}
+            >
+              <Icon
+                name="heart"
+                size={19}
+                fill={isFavorite(product.id) ? "currentColor" : "none"}
+              />
+            </button>
+          </div>
 
           <p className="detail-description">
             {product.descripcion ||
