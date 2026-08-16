@@ -16,7 +16,12 @@ const register = async (req, res) => {
 
         console.error(error);
 
-        res.status(500).json({
+        /*
+         Correo no institucional, matrícula repetida o contraseña débil
+         son errores del formulario, no fallas del servidor: se
+         responden como 400 para que la app los muestre tal cual.
+        */
+        res.status(400).json({
             success: false,
             message: error.message
         });

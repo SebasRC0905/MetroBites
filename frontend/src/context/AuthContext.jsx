@@ -41,6 +41,31 @@ export const AuthProvider =
         setUser(null);
     };
 
+    /*
+     Vuelve a leer el perfil del servidor. Lo usa la pantalla de perfil
+     después de guardar para que la foto y el nombre se actualicen al
+     instante en la barra lateral y el menú.
+    */
+    const refreshUser = async () => {
+
+        try {
+
+            const response =
+                await authService.getProfile();
+
+            setUser(response.data);
+
+            return response.data;
+
+        } catch (error) {
+
+            console.error(error);
+
+            return null;
+        }
+
+    };
+
     useEffect(() => {
 
         const loadUser =
@@ -92,6 +117,7 @@ export const AuthProvider =
                 user,
                 login,
                 logout,
+                refreshUser,
                 loading
             }}
         >

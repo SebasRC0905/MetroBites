@@ -132,3 +132,34 @@
   flex: 0 0 auto;
   margin-top: 2px;
 }
+
+/* Aviso cuando el platillo choca con una alergia del perfil */
+
+.nutrition-alert {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 16px;
+  padding: 13px 16px;
+  color: var(--danger);
+  background: var(--danger-soft);
+  border: 1px solid rgba(225, 29, 72, 0.18);
+  border-radius: var(--r-md);
+}
+
+.nutrition-alert svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+
+.nutrition-alert strong {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 14.5px;
+}
+
+.nutrition-alert span {
+  color: var(--ink-soft);
+  font-size: 13px;
+  line-height: 1.5;
+}

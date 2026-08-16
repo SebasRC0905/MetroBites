@@ -127,12 +127,46 @@ migraciones solo se aplican sobre una base **creada antes** de esos
 cambios, en orden y una sola vez:
 
 ```bash
-mysql -u root -p metrobites_db < database/migrations/001_metodos_pago_pedidos.sql
-mysql -u root -p metrobites_db < database/migrations/002_estados_pedido_y_personalizacion.sql
+mysql -u root -p --default-character-set=utf8mb4 metrobites_db < database/migrations/001_metodos_pago_pedidos.sql
+mysql -u root -p --default-character-set=utf8mb4 metrobites_db < database/migrations/002_estados_pedido_y_personalizacion.sql
+mysql -u root -p --default-character-set=utf8mb4 metrobites_db < database/migrations/003_perfil_alumno.sql
+mysql -u root -p --default-character-set=utf8mb4 metrobites_db < database/migrations/004_reparar_acentos.sql
 ```
 
-La migración 002 agrega el ciclo de vida completo del pedido, la
-bitácora de estados y las plantillas de personalización por categoría.
+* **002** agrega el ciclo de vida completo del pedido, la bitácora de
+  estados y las plantillas de personalización por categoría.
+* **003** agrega la foto de perfil, el teléfono de contacto y completa
+  el catálogo de preferencias dietéticas.
+* **004** repara los acentos si alguna migración se importó sin
+  `--default-character-set=utf8mb4` (ver abajo).
+
+---
+
+## ⚠️ Acentos: usa siempre `--default-character-set=utf8mb4`
+
+En Windows el cliente `mysql` arranca con la página de códigos de la
+consola (`cp850`). Si importas un archivo `.sql` en UTF-8 sin indicarle
+el juego de caracteres, el servidor interpreta mal cada byte y "Tamaño"
+termina guardado como "Tama├▒o".
+
+Por eso todos los comandos de arriba llevan `--default-character-set=utf8mb4`,
+y las migraciones traen `SET NAMES utf8mb4;` en su primera línea.
+
+Si ya te pasó, la migración 004 lo repara sin tocar las filas correctas.
+Para comprobar cómo quedó guardado un texto:
+
+```bash
+mysql -u root -p --default-character-set=utf8mb4 metrobites_db -e "SELECT nombre, HEX(nombre) FROM personalizaciones_producto WHERE nombre LIKE 'Jalape%';"
+```
+
+La ñ debe verse como los bytes `C3B1`. Si aparece `E2949CE29692`, falta
+correr la migración 004.
+
+Al generar respaldos, el mismo cuidado:
+
+```bash
+mysqldump -u root -p --default-character-set=utf8mb4 metrobites_db > respaldo.sql
+```
 
 ---
 
@@ -141,15 +175,15 @@ bitácora de estados y las plantillas de personalización por categoría.
 Windows:
 
 ```bash
-mysql -u root -p metrobites_db < database/schema.sql
-mysql -u root -p metrobites_db < database/seed.sql
+mysql -u root -p --default-character-set=utf8mb4 metrobites_db < database/schema.sql
+mysql -u root -p --default-character-set=utf8mb4 metrobites_db < database/seed.sql
 ```
 
 macOS:
 
 ```bash
-mysql -u root -p metrobites_db < database/schema.sql
-mysql -u root -p metrobites_db < database/seed.sql
+mysql -u root -p --default-character-set=utf8mb4 metrobites_db < database/schema.sql
+mysql -u root -p --default-character-set=utf8mb4 metrobites_db < database/seed.sql
 ```
 
 ---
@@ -193,6 +227,8 @@ DB_PASSWORD=
 DB_NAME=metrobites_db
 
 JWT_SECRET=metrobites_secret
+
+DOMINIO_INSTITUCIONAL=upmh.edu.mx
 ```
 
 ---
@@ -297,10 +333,13 @@ MetroBites
 
 ## Usuarios
 
-* Registro
-* Inicio de sesión
-* Perfil
-* Preferencias
+* Registro **solo con correo institucional** `@upmh.edu.mx`
+  (configurable con la variable `DOMINIO_INSTITUCIONAL`)
+* Inicio de sesión con límite de intentos por IP
+* Perfil con foto, teléfono de contacto y datos editables
+* Alergias y estilo de vida, que avisan si un platillo puede
+  contener algo que marcaste
+* Cambio de contraseña desde el propio perfil
 
 ## Productos
 
@@ -340,6 +379,18 @@ cancelar o rechazar exige un motivo que el alumno alcanza a ver.
 
 Ninguna requiere llave ni pago. El detalle de cada endpoint está en
 `backend/API_DOCUMENTATION.md`.
+
+## Seguridad de la API
+
+* Validación de entrada con `express-validator` y respuestas de error
+  con la misma forma en toda la API.
+* Límite de intentos por IP en inicio de sesión, registro y cambio de
+  contraseña.
+* Subida de archivos solo con sesión iniciada, con tope de 3 MB, tipos
+  permitidos (JPG, PNG, WEBP, GIF) y nombre generado al azar.
+* Manejador global de errores y de rutas inexistentes: la API nunca
+  responde HTML ni deja una petición sin contestar.
+* Permisos por rol validados en el servidor, no solo en la interfaz.
 
 ## Favoritos
 

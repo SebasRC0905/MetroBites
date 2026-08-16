@@ -5,11 +5,27 @@ import Icon from "./Icon";
 import { SkeletonLine } from "./Skeleton";
 
 import nutritionService from "../services/nutritionService";
+import useDietaryPreferences from "../hooks/useDietaryPreferences";
 import { queryKeys } from "../lib/queryClient";
 
 import { itemVariants, listaVariants } from "../lib/motion";
 
 import "./NutritionPanel.css";
+
+/*
+ Los nombres de alérgeno que devuelve Open Food Facts no siempre son
+ iguales a los del catálogo del perfil ("Lácteos" vs "Lactosa"), así que
+ se cruzan con esta tabla.
+*/
+const EQUIVALENCIAS_ALERGIA = {
+  Lactosa: ["Lácteos"],
+  Gluten: ["Gluten"],
+  Huevo: ["Huevo"],
+  Cacahuate: ["Cacahuate", "Frutos secos"],
+  "Frutos secos": ["Frutos secos", "Cacahuate"],
+  Soya: ["Soya"],
+  Mariscos: ["Mariscos", "Pescado"],
+};
 
 const CAMPOS = [
   { clave: "calorias", etiqueta: "Calorías", unidad: "kcal", icono: "flame" },
@@ -28,6 +44,8 @@ const CAMPOS = [
  * Si la API externa no responde, el bloque no se muestra.
  */
 function NutritionPanel({ productoId }) {
+  const { alergias } = useDietaryPreferences();
+
   const consulta = useQuery({
     queryKey: queryKeys.nutricion(productoId),
     queryFn: () => nutritionService.getByProduct(productoId),
@@ -60,12 +78,41 @@ function NutritionPanel({ productoId }) {
     return null;
   }
 
+  /*
+   Cruce entre los alérgenos que reporta la referencia y las alergias
+   que el alumno registró en su perfil.
+  */
+  const alertas = alergias.filter((alergia) =>
+    (EQUIVALENCIAS_ALERGIA[alergia.nombre] || [alergia.nombre]).some(
+      (equivalente) => datos.alergenos.includes(equivalente),
+    ),
+  );
+
   return (
     <section className="nutrition">
       <div className="mb-section-head">
         <h2>Información nutrimental</h2>
         <span>por cada 100 g</span>
       </div>
+
+      {alertas.length > 0 && (
+        <motion.div
+          className="nutrition-alert"
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <Icon name="alert" size={18} />
+
+          <div>
+            <strong>Ojo con tus alergias</strong>
+
+            <span>
+              Marcaste alergia a {alertas.map((item) => item.nombre).join(" y ")}
+              , y este tipo de producto suele contenerla.
+            </span>
+          </div>
+        </motion.div>
+      )}
 
       {datos.nutriScore && (
         <div className={`nutrition-score ${datos.nutriScore.tono}`}>

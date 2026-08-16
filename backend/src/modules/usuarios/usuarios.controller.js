@@ -49,6 +49,136 @@ const updateProfile = async (
 
     } catch (error) {
 
+        /* Nombre vacío o nivel de picante inválido son errores del
+           formulario, no del servidor. */
+        res.status(400).json({
+            success: false,
+            message: error.message
+        });
+
+    }
+
+};
+
+/** Sube (o reemplaza) la foto de perfil del usuario en sesión. */
+const updateProfilePhoto = async (
+    req,
+    res
+) => {
+
+    try {
+
+        if (!req.file) {
+
+            return res.status(400).json({
+                success: false,
+                message: 'No se recibió ninguna imagen'
+            });
+
+        }
+
+        const usuario =
+            await usuariosService.updateProfilePhoto(
+                req.user.id,
+                `/uploads/${req.file.filename}`
+            );
+
+        res.json({
+            success: true,
+            data: usuario
+        });
+
+    } catch (error) {
+
+        console.error(error);
+
+        res.status(400).json({
+            success: false,
+            message: error.message
+        });
+
+    }
+
+};
+
+/** Quita la foto y regresa a las iniciales. */
+const deleteProfilePhoto = async (
+    req,
+    res
+) => {
+
+    try {
+
+        const usuario =
+            await usuariosService.updateProfilePhoto(
+                req.user.id,
+                null
+            );
+
+        res.json({
+            success: true,
+            data: usuario
+        });
+
+    } catch (error) {
+
+        res.status(400).json({
+            success: false,
+            message: error.message
+        });
+
+    }
+
+};
+
+const changePassword = async (
+    req,
+    res
+) => {
+
+    try {
+
+        const resultado =
+            await usuariosService.changePassword(
+                req.user.id,
+                req.body.actual,
+                req.body.nueva
+            );
+
+        res.json({
+            success: true,
+            data: resultado
+        });
+
+    } catch (error) {
+
+        res.status(400).json({
+            success: false,
+            message: error.message
+        });
+
+    }
+
+};
+
+/** Catálogo de alergias y estilos de vida para el perfil. */
+const getCatalogoPreferencias = async (
+    req,
+    res
+) => {
+
+    try {
+
+        const preferencias =
+            await usuariosService.getCatalogoPreferencias();
+
+        res.json({
+            success: true,
+            data: preferencias
+        });
+
+    } catch (error) {
+
         res.status(500).json({
             success: false,
             message: error.message
@@ -185,6 +315,10 @@ const deleteUserAdmin = async (
 module.exports = {
     getProfile,
     updateProfile,
+    updateProfilePhoto,
+    deleteProfilePhoto,
+    changePassword,
+    getCatalogoPreferencias,
     getAllUsersAdmin,
     createUserAdmin,
     updateUserAdmin,

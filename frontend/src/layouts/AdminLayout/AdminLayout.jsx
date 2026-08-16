@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 
 import Icon from "../../components/Icon";
 import Logo from "../../components/Logo";
+import Avatar from "../../components/Avatar";
 import AnimatedOutlet from "../../components/AnimatedOutlet";
 
 import { useAuth } from "../../context/AuthContext";
@@ -37,7 +38,6 @@ function AdminLayout() {
   const closeMenu = () => setMenuOpen(false);
 
   const firstName = user?.nombre?.split(" ")[0] || "";
-  const initial = firstName.charAt(0).toUpperCase();
 
   const handleLogout = () => {
     logout();
@@ -103,7 +103,11 @@ function AdminLayout() {
 
         <div className="admin-sidebar-foot">
           <div className="admin-user">
-            <span className="admin-user-avatar">{initial}</span>
+            <Avatar
+              nombre={user?.nombre || ""}
+              urlFoto={user?.url_foto}
+              size={40}
+            />
 
             <div>
               <strong>{firstName || "Administrador"}</strong>
@@ -135,7 +139,11 @@ function AdminLayout() {
               <span>Sesión activa</span>
             </div>
 
-            <span className="mb-avatar sm">{initial}</span>
+            <Avatar
+              nombre={user?.nombre || ""}
+              urlFoto={user?.url_foto}
+              size={36}
+            />
           </div>
         </header>
 

@@ -2,16 +2,48 @@ const pool = require('../../config/database');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
+const {
+    asegurarCorreoInstitucional
+} = require('../../utils/validaciones');
+
 const registerUser = async (userData) => {
 
     const {
         matricula,
         nombre,
-        correo,
         password,
         carrera,
         tolerancia_picante
     } = userData;
+
+    /*
+     Segunda barrera del correo institucional: la ruta ya lo valida,
+     pero el servicio no confía en que siempre se llame desde ahí.
+     Además deja el correo normalizado en minúsculas.
+    */
+    const correo = asegurarCorreoInstitucional(userData.correo);
+
+    const [existentes] = await pool.query(
+        `
+        SELECT correo, matricula
+        FROM usuarios
+        WHERE correo = ?
+        OR matricula = ?
+        `,
+        [correo, matricula]
+    );
+
+    if (existentes.length > 0) {
+
+        const duplicado = existentes[0];
+
+        throw new Error(
+            duplicado.correo === correo
+                ? 'Ese correo ya tiene una cuenta registrada'
+                : 'Esa matrícula ya tiene una cuenta registrada'
+        );
+
+    }
 
     const passwordHash = await bcrypt.hash(password, 10);
 
@@ -103,6 +135,8 @@ const getProfile = async (
                 nombre,
                 correo,
                 carrera,
+                url_foto,
+                telefono,
                 rol,
                 tolerancia_picante
             FROM usuarios

@@ -87,3 +87,19 @@
     grid-column: auto;
   }
 }
+
+/* Ayuda bajo el campo de correo institucional */
+
+.field-hint {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 11.5px;
+}
+
+.field-hint.is-error {
+  color: var(--danger);
+  font-weight: 600;
+}

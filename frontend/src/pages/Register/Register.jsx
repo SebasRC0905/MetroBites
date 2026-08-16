@@ -8,18 +8,13 @@ import Icon from "../../components/Icon";
 import Logo from "../../components/Logo";
 import AuthAside from "../../components/AuthAside";
 
-import "./Register.css";
+import {
+  CARRERAS,
+  DOMINIO_INSTITUCIONAL,
+  esCorreoInstitucional,
+} from "../../lib/carreras";
 
-const carreras = [
-  "Aeronáutica",
-  "Animación y Efectos Visuales",
-  "Energía y Desarrollo Sostenible",
-  "Logística",
-  "Tecnologías de la Información e Innovación Digital",
-  "Administración y Gestión Empresarial",
-  "Arquitectura Bioclimática",
-  "Comercio Internacional y Aduanas",
-];
+import "./Register.css";
 
 const getPasswordScore = (value) => {
   if (!value) {
@@ -56,6 +51,14 @@ function Register() {
   const passwordsMatch =
     confirmPassword.length === 0 || password === confirmPassword;
 
+  /*
+   Solo se marca el error cuando ya se escribió algo: nadie quiere ver
+   una advertencia en rojo antes de teclear la primera letra. El
+   backend vuelve a validarlo de todos modos.
+  */
+  const correoValido =
+    correo.trim().length === 0 || esCorreoInstitucional(correo);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -63,8 +66,20 @@ function Register() {
       return;
     }
 
+    if (!esCorreoInstitucional(correo)) {
+      toast.error(`Usa tu correo institucional @${DOMINIO_INSTITUCIONAL}`);
+      return;
+    }
+
     if (password !== confirmPassword) {
       toast.error("Las contraseñas no coinciden");
+      return;
+    }
+
+    if (getPasswordScore(password) < 2 || password.length < 8) {
+      toast.error(
+        "La contraseña debe tener al menos 8 caracteres, una letra y un número",
+      );
       return;
     }
 
@@ -174,13 +189,30 @@ function Register() {
               <div className="mb-input-icon">
                 <Icon name="mail" size={19} />
                 <input
-                  className="mb-input"
+                  className={`mb-input ${correoValido ? "" : "is-invalid"}`}
                   type="email"
-                  placeholder="123456@upmh.edu.mx"
+                  placeholder={`123456@${DOMINIO_INSTITUCIONAL}`}
                   value={correo}
                   onChange={(e) => setCorreo(e.target.value)}
+                  aria-invalid={!correoValido}
+                  aria-describedby="correo-ayuda"
                 />
               </div>
+
+              <small
+                id="correo-ayuda"
+                className={`field-hint ${correoValido ? "" : "is-error"}`}
+              >
+                {correoValido ? (
+                  `Solo cuentas @${DOMINIO_INSTITUCIONAL}`
+                ) : (
+                  <>
+                    <Icon name="alert" size={13} />
+                    El registro es exclusivo para correos @
+                    {DOMINIO_INSTITUCIONAL}
+                  </>
+                )}
+              </small>
             </label>
 
             <label className="mb-field span-2">
@@ -193,7 +225,7 @@ function Register() {
               >
                 <option value="">Selecciona tu programa</option>
 
-                {carreras.map((item) => (
+                {CARRERAS.map((item) => (
                   <option key={item} value={item}>
                     {item}
                   </option>
@@ -274,7 +306,7 @@ function Register() {
             <button
               type="submit"
               className="mb-btn mb-btn-accent mb-btn-lg mb-btn-block span-2"
-              disabled={submitting}
+              disabled={submitting || !correoValido}
             >
               {submitting ? <span className="mb-spinner" /> : null}
               {submitting ? "Creando cuenta…" : "Completar registro"}

@@ -8,7 +8,13 @@ const pool = mysql.createPool({
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   waitForConnections: true,
-  connectionLimit: 10
+  connectionLimit: 10,
+  /*
+   Se fija explícitamente para que la conexión nunca herede la página de
+   códigos del sistema (en Windows, cp850) y los acentos y eñes viajen
+   igual que como están guardados en las tablas.
+  */
+  charset: 'utf8mb4'
 });
 
 module.exports = pool;

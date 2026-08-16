@@ -39,6 +39,67 @@
   animation: softFloat 6s ease-in-out infinite;
 }
 
+/* ---------- Foto de perfil ---------- */
+
+.profile-photo {
+  position: relative;
+  margin-bottom: 18px;
+}
+
+.profile-photo .avatar {
+  border: 4px solid var(--surface);
+  box-shadow: var(--shadow-md);
+}
+
+.profile-photo-btn {
+  position: absolute;
+  right: -2px;
+  bottom: 2px;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  color: #ffffff;
+  background: var(--grad-accent);
+  border: 3px solid var(--surface);
+  border-radius: var(--r-pill);
+  box-shadow: var(--shadow-accent);
+  transition: transform var(--dur-fast) var(--ease);
+}
+
+.profile-photo-btn:hover:not(:disabled) {
+  transform: scale(1.08);
+}
+
+.profile-photo-btn .mb-spinner {
+  width: 15px;
+  height: 15px;
+  border-width: 2px;
+}
+
+.profile-photo-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+.profile-photo-hint {
+  margin-top: 8px;
+  color: var(--muted-soft);
+  font-size: 11.5px;
+}
+
+.profile-since {
+  display: inline-flex;
+  gap: 7px;
+  align-items: center;
+  margin-top: 18px;
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
 .profile-identity h2 {
   font-size: 21px;
 }
@@ -60,7 +121,7 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
   width: 100%;
-  margin-top: 24px;
+  margin-top: 22px;
 }
 
 .profile-stats .mb-stat {
@@ -236,5 +297,109 @@
 
   .profile-info dd {
     text-align: left;
+  }
+}
+
+/* ---------- Datos editables ---------- */
+
+.profile-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.profile-field-wide {
+  grid-column: 1 / -1;
+}
+
+/* ---------- Alergias y estilo de vida ---------- */
+
+.profile-tags-group + .profile-tags-group {
+  margin-top: 16px;
+}
+
+.profile-tags-label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.profile-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.profile-tag {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  padding: 8px 14px;
+  color: var(--ink-soft);
+  background: var(--surface);
+  border: 1.5px solid var(--line);
+  border-radius: var(--r-pill);
+  font-size: 13px;
+  font-weight: 600;
+  transition:
+    color var(--dur-fast) var(--ease),
+    background var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease);
+}
+
+.profile-tag:hover {
+  border-color: var(--violet-200);
+}
+
+.profile-tag.is-active {
+  color: var(--violet-800);
+  background: var(--violet-50);
+  border-color: var(--violet-500);
+}
+
+.profile-tag.is-allergy.is-active {
+  color: var(--coral-700);
+  background: var(--coral-50);
+  border-color: var(--coral-500);
+}
+
+/* ---------- Cambio de contraseña ---------- */
+
+.profile-password {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  overflow: hidden;
+}
+
+.profile-password-hint {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
+.profile-password-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.mb-input.is-invalid {
+  border-color: var(--danger);
+}
+
+@media (max-width: 720px) {
+  .profile-fields,
+  .profile-password {
+    grid-template-columns: 1fr;
   }
 }

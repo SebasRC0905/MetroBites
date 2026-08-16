@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 
 import ProductCard from "../../components/ProductCard";
 import Icon from "../../components/Icon";
+import Avatar from "../../components/Avatar";
 import EmptyState from "../../components/EmptyState";
 import AnimatedNumber from "../../components/AnimatedNumber";
 import { SkeletonGrid } from "../../components/Skeleton";
@@ -81,7 +82,6 @@ function Home() {
   );
 
   const firstName = user?.nombre?.split(" ")[0] || "";
-  const userInitial = firstName.charAt(0).toUpperCase() || "U";
 
   const tabs = ["Todos", ...categories];
 
@@ -103,7 +103,11 @@ function Home() {
           <CurrencySwitcher />
 
           <div className="home-identity">
-            <span className="mb-avatar sm">{userInitial}</span>
+            <Avatar
+              nombre={user?.nombre || ""}
+              urlFoto={user?.url_foto}
+              size={34}
+            />
             <span>{firstName}</span>
           </div>
 

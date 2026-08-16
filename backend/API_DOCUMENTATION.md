@@ -18,8 +18,25 @@ Body:
 "matricula": "2230110",
 "nombre": "Sebastian Ruiz",
 "correo": "[sebastian@upmh.edu.mx](mailto:sebastian@upmh.edu.mx)",
-"password": "12345678"
+"password": "Metro2026",
+"carrera": "Tecnologías de la Información e Innovación Digital"
 }
+
+Reglas (responden 400 con el mensaje exacto si no se cumplen):
+
+| Campo | Regla |
+| --- | --- |
+| `correo` | **Obligatoriamente del dominio institucional** (`@upmh.edu.mx`, configurable con la variable `DOMINIO_INSTITUCIONAL`). Se guarda en minúsculas. |
+| `password` | Mínimo 8 caracteres, con al menos una letra y un número |
+| `matricula` | 4 a 20 caracteres: letras, números y guiones |
+| `nombre` | 3 a 100 caracteres |
+
+El correo y la matrícula son únicos: si ya existen, la respuesta dice
+cuál de los dos está repetido. El alta de usuarios desde el panel
+(`POST /usuarios/admin`) exige el mismo dominio.
+
+Registro y login están limitados por IP (5 registros por hora, 10
+inicios de sesión cada 10 minutos) y responden 429 al pasarse.
 
 ---
 
@@ -43,6 +60,36 @@ GET /auth/profile
 Headers:
 
 Authorization: Bearer TOKEN
+
+---
+
+# PERFIL DEL ALUMNO
+
+GET /usuarios/perfil — datos de la cuenta más `url_foto`, `telefono` y
+sus `preferencias` dietéticas
+
+PATCH /usuarios/perfil — actualiza **solo los campos que se envíen**
+
+Body (todos opcionales):
+
+{
+"nombre": "Sebastián Ruiz",
+"carrera": "Logística",
+"telefono": "7712345678",
+"tolerancia_picante": "habanero",
+"preferencias": [1, 5]
+}
+
+GET /usuarios/preferencias — catálogo de alergias y estilos de vida
+
+POST /usuarios/perfil/foto — `multipart/form-data` con el campo
+`imagen`. Solo JPG, PNG, WEBP o GIF de máximo 3 MB; el archivo se
+renombra al azar y la foto anterior se borra del disco.
+
+DELETE /usuarios/perfil/foto — vuelve a las iniciales
+
+PATCH /usuarios/perfil/password — body `{ "actual": "...", "nueva": "..." }`.
+Verifica la contraseña actual y exige la misma fuerza que el registro.
 
 ---
 
@@ -203,3 +250,16 @@ dato conocido antes que romper la vista.
 | GET /divisas/tasas | Frankfurter (BCE) | Precios en USD y EUR | 6 h |
 | GET /divisas/convertir?monto=&moneda= | Frankfurter (BCE) | Conversión puntual | 6 h |
 | GET /festivos/proximos?limite=3 | Nager.Date | Días sin servicio en la cafetería | 24 h |
+
+---
+
+# CONVENCIONES DE LA API
+
+* Toda respuesta trae `success`. Cuando falla incluye `message` listo
+  para mostrarle al usuario y, en errores de validación, `errores` con
+  el detalle por campo.
+* 400 = datos incorrectos · 401 = sin sesión o credenciales malas ·
+  403 = sin permisos para ese rol · 404 = no existe · 429 = demasiados
+  intentos · 500 = error del servidor.
+* Las rutas que no existen responden JSON, no HTML.
+* Subir archivos requiere sesión iniciada.

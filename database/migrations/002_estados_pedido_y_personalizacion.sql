@@ -16,6 +16,11 @@
 -- base con datos reales.
 -- ============================================================
 
+-- Este archivo está en UTF-8 y trae acentos y eñes ("Tamaño",
+-- "Acompañamiento"). En Windows el cliente `mysql` arranca en cp850, y
+-- sin esta línea el servidor guardaría "Tama├▒o". No la quites.
+SET NAMES utf8mb4;
+
 -- ------------------------------------------------------------
 -- 1. Estados del pedido
 -- ------------------------------------------------------------

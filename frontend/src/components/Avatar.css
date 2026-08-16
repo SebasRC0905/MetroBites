@@ -1,0 +1,40 @@
+.avatar {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  overflow: hidden;
+  color: #ffffff;
+  background: var(--grad-brand);
+  border-radius: var(--r-pill);
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  user-select: none;
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar.tone-violet {
+  background: linear-gradient(140deg, var(--violet-600), var(--violet-900));
+}
+
+.avatar.tone-coral {
+  background: linear-gradient(140deg, var(--coral-500), var(--coral-700));
+}
+
+.avatar.tone-green {
+  background: linear-gradient(140deg, var(--emerald-600), var(--emerald-700));
+}
+
+.avatar.tone-blue {
+  background: linear-gradient(140deg, #4f7df3, #1e3a8a);
+}
+
+.avatar.tone-amber {
+  background: linear-gradient(140deg, #f0a238, #b45309);
+}

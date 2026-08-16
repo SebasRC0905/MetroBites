@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 
 import Icon from "../components/Icon";
 import Logo from "../components/Logo";
+import Avatar from "../components/Avatar";
 import AnimatedOutlet from "../components/AnimatedOutlet";
 
 import { useAuth } from "../context/AuthContext";
@@ -53,7 +54,6 @@ function MainLayout() {
   const closeMenu = () => setMenuOpen(false);
 
   const firstName = user?.nombre?.split(" ")[0] || "";
-  const initial = firstName.charAt(0).toUpperCase();
 
   const handleLogout = () => {
     logout();
@@ -126,7 +126,11 @@ function MainLayout() {
 
         <div className="app-sidebar-foot">
           <div className="app-user">
-            <span className="mb-avatar sm">{initial}</span>
+            <Avatar
+              nombre={user?.nombre || ""}
+              urlFoto={user?.url_foto}
+              size={38}
+            />
 
             <div>
               <strong>{firstName || "Alumno"}</strong>
