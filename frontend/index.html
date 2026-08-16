@@ -2,13 +2,24 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#4e13a0" />
     <meta
       name="description"
       content="MetroBites · Pide en la cafetería de la UPMH sin hacer filas."
     />
+
+    <!--
+      Icono de la aplicación. El SVG es el que usan los navegadores
+      modernos (se ve nítido en cualquier tamaño); el PNG queda como
+      respaldo para los que no soportan SVG, y el de 180 px es el que
+      toma iOS cuando alguien agrega la página a su pantalla de inicio.
+    -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta name="apple-mobile-web-app-title" content="MetroBites" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

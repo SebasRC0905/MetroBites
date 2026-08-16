@@ -1,0 +1,29 @@
+{
+  "name": "MetroBites · Cafetería UPMH",
+  "short_name": "MetroBites",
+  "description": "Pide en la cafetería de la UPMH sin hacer filas.",
+  "lang": "es-MX",
+  "start_url": "/home",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f5f4f9",
+  "theme_color": "#4e13a0",
+  "icons": [
+    {
+      "src": "/favicon-32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
