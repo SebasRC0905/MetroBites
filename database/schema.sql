@@ -1,13 +1,13 @@
 -- MySQL dump 10.13  Distrib 8.0.43, for Win64 (x86_64)
 --
--- Host: 127.0.0.1    Database: metrobites_db
+-- Host: localhost    Database: metrobites_db
 -- ------------------------------------------------------
 -- Server version	8.0.43
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!50503 SET NAMES utf8 */;
+/*!50503 SET NAMES utf8mb4 */;
 /*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
 /*!40103 SET TIME_ZONE='+00:00' */;
 /*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
@@ -55,7 +55,7 @@ CREATE TABLE `cupones` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `codigo` (`codigo`),
   KEY `idx_cupon_codigo` (`codigo`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -64,6 +64,7 @@ CREATE TABLE `cupones` (
 
 LOCK TABLES `cupones` WRITE;
 /*!40000 ALTER TABLE `cupones` DISABLE KEYS */;
+INSERT INTO `cupones` VALUES (1,'BIENVENIDA10',10.00,50.00,'2027-01-01'),(2,'ELDED',50.00,100.00,'2026-09-11');
 /*!40000 ALTER TABLE `cupones` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -81,12 +82,13 @@ CREATE TABLE `detalles_pedido` (
   `cantidad` int DEFAULT '1',
   `precio_unitario` decimal(10,2) NOT NULL,
   `subtotal` decimal(10,2) NOT NULL,
+  `notas` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `pedido_id` (`pedido_id`),
   KEY `producto_id` (`producto_id`),
   CONSTRAINT `detalles_pedido_ibfk_1` FOREIGN KEY (`pedido_id`) REFERENCES `pedidos` (`id`) ON DELETE CASCADE,
   CONSTRAINT `detalles_pedido_ibfk_2` FOREIGN KEY (`producto_id`) REFERENCES `productos` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=34 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -95,7 +97,7 @@ CREATE TABLE `detalles_pedido` (
 
 LOCK TABLES `detalles_pedido` WRITE;
 /*!40000 ALTER TABLE `detalles_pedido` DISABLE KEYS */;
-INSERT INTO `detalles_pedido` VALUES (1,2,1,2,65.00,130.00),(2,3,1,2,65.00,150.00),(3,4,1,1,65.00,65.00),(4,5,1,1,65.00,90.00),(5,6,1,1,65.00,90.00),(6,7,1,1,65.00,65.00),(7,8,1,1,65.00,65.00),(8,9,4,1,30.00,30.00),(9,10,1,1,65.00,65.00),(10,11,4,1,30.00,30.00),(11,12,4,1,30.00,30.00),(12,13,4,1,30.00,30.00),(13,14,4,1,30.00,30.00),(14,15,4,1,30.00,30.00),(15,16,4,1,30.00,30.00);
+INSERT INTO `detalles_pedido` VALUES (1,2,1,2,65.00,130.00,NULL),(2,3,1,2,65.00,150.00,NULL),(3,4,1,1,65.00,65.00,NULL),(4,5,1,1,65.00,90.00,NULL),(5,6,1,1,65.00,90.00,NULL),(6,7,1,1,65.00,65.00,NULL),(7,8,1,1,65.00,65.00,NULL),(8,9,4,1,30.00,30.00,NULL),(9,10,1,1,65.00,65.00,NULL),(10,11,4,1,30.00,30.00,NULL),(11,12,4,1,30.00,30.00,NULL),(12,13,4,1,30.00,30.00,NULL),(13,14,4,1,30.00,30.00,NULL),(14,15,4,1,30.00,30.00,NULL),(15,16,4,1,30.00,30.00,NULL),(16,17,4,1,30.00,30.00,NULL),(17,18,4,1,30.00,30.00,NULL),(18,19,4,1,30.00,30.00,NULL),(19,20,4,1,30.00,30.00,NULL),(20,21,1,1,65.00,65.00,NULL),(21,21,4,1,30.00,30.00,NULL),(22,22,1,1,65.00,65.00,NULL),(23,23,4,1,30.00,30.00,NULL),(24,24,7,2,35.00,70.00,NULL),(25,25,4,1,30.00,30.00,NULL),(26,25,4,1,30.00,30.00,NULL);
 /*!40000 ALTER TABLE `detalles_pedido` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -124,6 +126,39 @@ LOCK TABLES `favoritos` WRITE;
 /*!40000 ALTER TABLE `favoritos` DISABLE KEYS */;
 INSERT INTO `favoritos` VALUES (1,1);
 /*!40000 ALTER TABLE `favoritos` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `historial_estados_pedido`
+--
+
+DROP TABLE IF EXISTS `historial_estados_pedido`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `historial_estados_pedido` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `pedido_id` int NOT NULL,
+  `estado_anterior` varchar(20) DEFAULT NULL,
+  `estado_nuevo` varchar(20) NOT NULL,
+  `usuario_id` int DEFAULT NULL,
+  `nota` varchar(255) DEFAULT NULL,
+  `creado_en` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_historial_pedido` (`pedido_id`),
+  KEY `historial_estados_pedido_ibfk_2` (`usuario_id`),
+  CONSTRAINT `historial_estados_pedido_ibfk_1` FOREIGN KEY (`pedido_id`) REFERENCES `pedidos` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `historial_estados_pedido_ibfk_2` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB AUTO_INCREMENT=51 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `historial_estados_pedido`
+--
+
+LOCK TABLES `historial_estados_pedido` WRITE;
+/*!40000 ALTER TABLE `historial_estados_pedido` DISABLE KEYS */;
+INSERT INTO `historial_estados_pedido` VALUES (1,1,NULL,'recibido',NULL,'Registro inicial generado por la migraci├│n 002','2026-06-01 03:42:14'),(2,2,NULL,'preparando',NULL,'Registro inicial generado por la migraci├│n 002','2026-06-01 03:47:19'),(3,3,NULL,'recibido',NULL,'Registro inicial generado por la migraci├│n 002','2026-06-01 03:50:34'),(4,4,NULL,'recibido',NULL,'Registro inicial generado por la migraci├│n 002','2026-06-01 23:41:14'),(5,5,NULL,'recibido',NULL,'Registro inicial generado por la migraci├│n 002','2026-06-02 00:06:37'),(6,6,NULL,'recibido',NULL,'Registro inicial generado por la migraci├│n 002','2026-06-02 01:19:10'),(7,7,NULL,'recibido',NULL,'Registro inicial generado por la migraci├│n 002','2026-06-02 01:25:41'),(8,8,NULL,'recibido',NULL,'Registro inicial generado por la migraci├│n 002','2026-06-09 00:11:53'),(9,9,NULL,'recibido',NULL,'Registro inicial generado por la migraci├│n 002','2026-06-22 22:31:03'),(10,10,NULL,'recibido',NULL,'Registro inicial generado por la migraci├│n 002','2026-06-22 23:35:46'),(11,11,NULL,'recibido',NULL,'Registro inicial generado por la migraci├│n 002','2026-06-23 00:25:31'),(12,12,NULL,'recibido',NULL,'Registro inicial generado por la migraci├│n 002','2026-06-26 23:51:21'),(13,13,NULL,'recibido',NULL,'Registro inicial generado por la migraci├│n 002','2026-06-27 00:39:43'),(14,14,NULL,'recibido',NULL,'Registro inicial generado por la migraci├│n 002','2026-06-27 00:43:18'),(15,15,NULL,'recibido',NULL,'Registro inicial generado por la migraci├│n 002','2026-06-29 18:31:33'),(16,16,NULL,'recibido',NULL,'Registro inicial generado por la migraci├│n 002','2026-06-29 23:50:53'),(17,17,NULL,'recibido',NULL,'Registro inicial generado por la migraci├│n 002','2026-07-08 05:13:25'),(18,18,NULL,'recibido',NULL,'Registro inicial generado por la migraci├│n 002','2026-07-20 22:46:17'),(19,19,NULL,'recibido',NULL,'Registro inicial generado por la migraci├│n 002','2026-07-20 23:56:23'),(20,20,NULL,'preparando',NULL,'Registro inicial generado por la migraci├│n 002','2026-08-11 05:31:23'),(21,21,NULL,'recibido',NULL,'Registro inicial generado por la migraci├│n 002','2026-08-11 06:02:36'),(22,22,NULL,'recibido',NULL,'Registro inicial generado por la migraci├│n 002','2026-08-11 13:02:53'),(23,23,NULL,'recibido',NULL,'Registro inicial generado por la migraci├│n 002','2026-08-11 13:20:17'),(24,24,NULL,'recibido',NULL,'Registro inicial generado por la migraci├│n 002','2026-08-11 13:44:38'),(25,25,NULL,'recibido',NULL,'Registro inicial generado por la migraci├│n 002','2026-08-11 20:50:02');
+/*!40000 ALTER TABLE `historial_estados_pedido` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -171,7 +206,7 @@ CREATE TABLE `metodos_pago` (
   PRIMARY KEY (`id`),
   KEY `usuario_id` (`usuario_id`),
   CONSTRAINT `metodos_pago_ibfk_1` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -180,6 +215,7 @@ CREATE TABLE `metodos_pago` (
 
 LOCK TABLES `metodos_pago` WRITE;
 /*!40000 ALTER TABLE `metodos_pago` DISABLE KEYS */;
+INSERT INTO `metodos_pago` VALUES (2,4,'paypal','Personal','qa.test@upmh.edu.mx',1,1);
 /*!40000 ALTER TABLE `metodos_pago` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -195,25 +231,29 @@ CREATE TABLE `pedidos` (
   `usuario_id` int NOT NULL,
   `horario_id` int NOT NULL,
   `cupon_id` int DEFAULT NULL,
-  `estado` enum('recibido','preparando','listo','entregado','cancelado') DEFAULT 'recibido',
-  `estado_pago` enum('pendiente','pagado','cancelado') DEFAULT 'pendiente',
+  `estado` enum('pendiente_pago','recibido','confirmado','preparando','listo','entregado','cancelado','rechazado','no_recogido') NOT NULL DEFAULT 'recibido',
+  `estado_pago` enum('pendiente','pagado','cancelado','reembolsado') NOT NULL DEFAULT 'pendiente',
+  `tiempo_estimado_min` int DEFAULT NULL,
+  `notas` varchar(255) DEFAULT NULL,
+  `motivo_cancelacion` varchar(255) DEFAULT NULL,
   `total` decimal(10,2) NOT NULL,
   `metodo_pago` enum('efectivo','tarjeta','paypal','transferencia') NOT NULL,
   `metodo_pago_id` int DEFAULT NULL,
   `codigo_qr` varchar(100) NOT NULL,
   `creado_en` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `actualizado_en` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `codigo_qr` (`codigo_qr`),
   KEY `horario_id` (`horario_id`),
   KEY `cupon_id` (`cupon_id`),
-  KEY `metodo_pago_id` (`metodo_pago_id`),
   KEY `idx_pedido_usuario` (`usuario_id`),
   KEY `idx_pedido_estado` (`estado`),
+  KEY `pedidos_ibfk_4` (`metodo_pago_id`),
   CONSTRAINT `pedidos_ibfk_1` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`),
   CONSTRAINT `pedidos_ibfk_2` FOREIGN KEY (`horario_id`) REFERENCES `horarios_recoleccion` (`id`),
   CONSTRAINT `pedidos_ibfk_3` FOREIGN KEY (`cupon_id`) REFERENCES `cupones` (`id`),
   CONSTRAINT `pedidos_ibfk_4` FOREIGN KEY (`metodo_pago_id`) REFERENCES `metodos_pago` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=33 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -222,7 +262,7 @@ CREATE TABLE `pedidos` (
 
 LOCK TABLES `pedidos` WRITE;
 /*!40000 ALTER TABLE `pedidos` DISABLE KEYS */;
-INSERT INTO `pedidos` VALUES (1,1,1,NULL,'recibido','pendiente',130.00,'efectivo','MB-1780285334202','2026-06-01 03:42:14'),(2,1,1,NULL,'preparando','pendiente',130.00,'efectivo','MB-1780285639521','2026-06-01 03:47:19'),(3,1,1,NULL,'recibido','pendiente',150.00,'efectivo','MB-1780285834863','2026-06-01 03:50:34'),(4,1,1,NULL,'recibido','pendiente',65.00,'efectivo','MB-1780357274757','2026-06-01 23:41:14'),(5,1,1,NULL,'recibido','pendiente',90.00,'efectivo','MB-1780358797697','2026-06-02 00:06:37'),(6,1,1,NULL,'recibido','pendiente',90.00,'efectivo','MB-1780363150222','2026-06-02 01:19:10'),(7,1,1,NULL,'recibido','pendiente',65.00,'efectivo','MB-1780363541206','2026-06-02 01:25:41'),(8,1,1,NULL,'recibido','pendiente',65.00,'efectivo','MB-1780963913134','2026-06-09 00:11:53'),(9,2,1,NULL,'recibido','pendiente',30.00,'efectivo','MB-1782167463485','2026-06-22 22:31:03'),(10,3,1,NULL,'recibido','pendiente',65.00,'efectivo','MB-1782171346722','2026-06-22 23:35:46'),(11,3,1,NULL,'recibido','pendiente',30.00,'efectivo','MB-1782174331017','2026-06-23 00:25:31'),(12,2,2,NULL,'recibido','pendiente',30.00,'efectivo','MB-1782517881967','2026-06-26 23:51:21'),(13,2,1,NULL,'recibido','pendiente',30.00,'efectivo','MB-1782520783785','2026-06-27 00:39:43'),(14,2,1,NULL,'recibido','pendiente',30.00,'efectivo','MB-1782520998894','2026-06-27 00:43:18'),(15,2,1,NULL,'recibido','pendiente',30.00,'efectivo','MB-1782757893293','2026-06-29 18:31:33'),(16,2,2,NULL,'recibido','pendiente',30.00,'efectivo','MB-1782777053835','2026-06-29 23:50:53');
+INSERT INTO `pedidos` VALUES (1,1,1,NULL,'recibido','pendiente',NULL,NULL,NULL,130.00,'efectivo',NULL,'MB-1780285334202','2026-06-01 03:42:14','2026-08-16 05:31:28'),(2,1,1,NULL,'preparando','pendiente',NULL,NULL,NULL,130.00,'efectivo',NULL,'MB-1780285639521','2026-06-01 03:47:19','2026-08-16 05:31:28'),(3,1,1,NULL,'recibido','pendiente',NULL,NULL,NULL,150.00,'efectivo',NULL,'MB-1780285834863','2026-06-01 03:50:34','2026-08-16 05:31:28'),(4,1,1,NULL,'recibido','pendiente',NULL,NULL,NULL,65.00,'efectivo',NULL,'MB-1780357274757','2026-06-01 23:41:14','2026-08-16 05:31:28'),(5,1,1,NULL,'recibido','pendiente',NULL,NULL,NULL,90.00,'efectivo',NULL,'MB-1780358797697','2026-06-02 00:06:37','2026-08-16 05:31:28'),(6,1,1,NULL,'recibido','pendiente',NULL,NULL,NULL,90.00,'efectivo',NULL,'MB-1780363150222','2026-06-02 01:19:10','2026-08-16 05:31:28'),(7,1,1,NULL,'recibido','pendiente',NULL,NULL,NULL,65.00,'efectivo',NULL,'MB-1780363541206','2026-06-02 01:25:41','2026-08-16 05:31:28'),(8,1,1,NULL,'recibido','pendiente',NULL,NULL,NULL,65.00,'efectivo',NULL,'MB-1780963913134','2026-06-09 00:11:53','2026-08-16 05:31:28'),(9,2,1,NULL,'recibido','pendiente',NULL,NULL,NULL,30.00,'efectivo',NULL,'MB-1782167463485','2026-06-22 22:31:03','2026-08-16 05:31:28'),(10,3,1,NULL,'recibido','pendiente',NULL,NULL,NULL,65.00,'efectivo',NULL,'MB-1782171346722','2026-06-22 23:35:46','2026-08-16 05:31:28'),(11,3,1,NULL,'recibido','pendiente',NULL,NULL,NULL,30.00,'efectivo',NULL,'MB-1782174331017','2026-06-23 00:25:31','2026-08-16 05:31:28'),(12,2,2,NULL,'recibido','pendiente',NULL,NULL,NULL,30.00,'efectivo',NULL,'MB-1782517881967','2026-06-26 23:51:21','2026-08-16 05:31:28'),(13,2,1,NULL,'recibido','pendiente',NULL,NULL,NULL,30.00,'efectivo',NULL,'MB-1782520783785','2026-06-27 00:39:43','2026-08-16 05:31:28'),(14,2,1,NULL,'recibido','pendiente',NULL,NULL,NULL,30.00,'efectivo',NULL,'MB-1782520998894','2026-06-27 00:43:18','2026-08-16 05:31:28'),(15,2,1,NULL,'recibido','pendiente',NULL,NULL,NULL,30.00,'efectivo',NULL,'MB-1782757893293','2026-06-29 18:31:33','2026-08-16 05:31:28'),(16,2,2,NULL,'recibido','pendiente',NULL,NULL,NULL,30.00,'efectivo',NULL,'MB-1782777053835','2026-06-29 23:50:53','2026-08-16 05:31:28'),(17,2,1,NULL,'recibido','pendiente',NULL,NULL,NULL,30.00,'efectivo',NULL,'MB-1783487605960','2026-07-08 05:13:25','2026-08-16 05:31:28'),(18,2,1,NULL,'recibido','pendiente',NULL,NULL,NULL,30.00,'efectivo',NULL,'MB-1784587577761','2026-07-20 22:46:17','2026-08-16 05:31:28'),(19,3,1,NULL,'recibido','pendiente',NULL,NULL,NULL,30.00,'efectivo',NULL,'MB-1784591783786','2026-07-20 23:56:23','2026-08-16 05:31:28'),(20,2,1,NULL,'preparando','pendiente',NULL,NULL,NULL,30.00,'efectivo',NULL,'MB-1786426283521','2026-08-11 05:31:23','2026-08-16 05:31:28'),(21,4,1,1,'recibido','pendiente',NULL,NULL,NULL,85.00,'efectivo',NULL,'MB-1786428156266','2026-08-11 06:02:36','2026-08-16 05:31:28'),(22,2,2,NULL,'recibido','pendiente',NULL,NULL,NULL,65.00,'tarjeta',NULL,'MB-1786453373921','2026-08-11 13:02:53','2026-08-16 05:31:28'),(23,4,1,NULL,'recibido','pendiente',NULL,NULL,NULL,30.00,'tarjeta',NULL,'MB-1786454417615','2026-08-11 13:20:17','2026-08-16 05:31:28'),(24,4,2,NULL,'recibido','pendiente',NULL,NULL,NULL,70.00,'paypal',2,'MB-1786455878210','2026-08-11 13:44:38','2026-08-16 05:31:28'),(25,2,1,NULL,'recibido','pendiente',NULL,NULL,NULL,60.00,'efectivo',NULL,'MB-1786481402657','2026-08-11 20:50:02','2026-08-16 05:31:28');
 /*!40000 ALTER TABLE `pedidos` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -241,7 +281,7 @@ CREATE TABLE `personalizaciones_detalle_pedido` (
   PRIMARY KEY (`id`),
   KEY `detalle_pedido_id` (`detalle_pedido_id`),
   CONSTRAINT `personalizaciones_detalle_pedido_ibfk_1` FOREIGN KEY (`detalle_pedido_id`) REFERENCES `detalles_pedido` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -268,10 +308,16 @@ CREATE TABLE `personalizaciones_producto` (
   `precio_adicional` decimal(10,2) DEFAULT '0.00',
   `es_requerido` tinyint(1) DEFAULT '0',
   `nombre_grupo` varchar(50) DEFAULT NULL,
+  `tipo_grupo` enum('unica','multiple') NOT NULL DEFAULT 'multiple',
+  `min_selecciones` int NOT NULL DEFAULT '0',
+  `max_selecciones` int DEFAULT NULL,
+  `orden` int NOT NULL DEFAULT '0',
+  `orden_opcion` int NOT NULL DEFAULT '0',
+  `descripcion` varchar(120) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `producto_id` (`producto_id`),
   CONSTRAINT `personalizaciones_producto_ibfk_1` FOREIGN KEY (`producto_id`) REFERENCES `productos` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=136 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -280,8 +326,44 @@ CREATE TABLE `personalizaciones_producto` (
 
 LOCK TABLES `personalizaciones_producto` WRITE;
 /*!40000 ALTER TABLE `personalizaciones_producto` DISABLE KEYS */;
-INSERT INTO `personalizaciones_producto` VALUES (5,1,'Salsa Verde',0.00,1,'Salsa'),(6,1,'Salsa Roja',0.00,1,'Salsa'),(7,1,'Extra Queso',10.00,0,'Extras'),(8,1,'Extra Pollo',15.00,0,'Extras');
+INSERT INTO `personalizaciones_producto` VALUES (5,1,'Salsa Verde',0.00,1,'Salsa','unica',1,1,1,1,'La de casa, medianamente picante'),(6,1,'Salsa Roja',0.00,1,'Salsa','unica',1,1,1,2,'Con chile de ├írbol'),(7,1,'Extra Queso',10.00,0,'Extras','multiple',0,3,4,1,NULL),(8,1,'Extra Pollo',15.00,0,'Extras','multiple',0,3,4,2,NULL),(9,1,'Frijoles refritos',12.00,0,'Acompa├▒amiento','unica',0,1,3,1,NULL),(10,1,'Papas cambray',15.00,0,'Acompa├▒amiento','unica',0,1,3,2,NULL),(11,1,'Aguacate',12.00,0,'Extras','multiple',0,3,4,4,NULL),(12,1,'Huevo estrellado',8.00,0,'Extras','multiple',0,3,4,3,NULL),(13,1,'Bien picoso',0.00,1,'Nivel de picante','unica',1,1,2,3,NULL),(14,1,'Medio',0.00,1,'Nivel de picante','unica',1,1,2,2,NULL),(15,1,'Suave',0.00,1,'Nivel de picante','unica',1,1,2,1,NULL),(16,1,'Sin salsa',0.00,1,'Salsa','unica',1,1,1,3,NULL),(17,2,'Frijoles refritos',12.00,0,'Acompa├▒amiento','unica',0,1,3,1,NULL),(18,2,'Papas cambray',15.00,0,'Acompa├▒amiento','unica',0,1,3,2,NULL),(19,2,'Aguacate',12.00,0,'Extras','multiple',0,3,4,4,NULL),(20,2,'Extra pollo',15.00,0,'Extras','multiple',0,3,4,2,NULL),(21,2,'Extra queso',10.00,0,'Extras','multiple',0,3,4,1,NULL),(22,2,'Huevo estrellado',8.00,0,'Extras','multiple',0,3,4,3,NULL),(23,2,'Bien picoso',0.00,1,'Nivel de picante','unica',1,1,2,3,NULL),(24,2,'Medio',0.00,1,'Nivel de picante','unica',1,1,2,2,NULL),(25,2,'Suave',0.00,1,'Nivel de picante','unica',1,1,2,1,NULL),(26,2,'Salsa roja',0.00,1,'Salsa','unica',1,1,1,2,'Con chile de ├írbol'),(27,2,'Salsa verde',0.00,1,'Salsa','unica',1,1,1,1,'La de casa, medianamente picante'),(28,2,'Sin salsa',0.00,1,'Salsa','unica',1,1,1,3,NULL),(29,6,'Frijoles refritos',12.00,0,'Acompa├▒amiento','unica',0,1,3,1,NULL),(30,6,'Papas cambray',15.00,0,'Acompa├▒amiento','unica',0,1,3,2,NULL),(31,6,'Aguacate',12.00,0,'Extras','multiple',0,3,4,4,NULL),(32,6,'Extra pollo',15.00,0,'Extras','multiple',0,3,4,2,NULL),(33,6,'Extra queso',10.00,0,'Extras','multiple',0,3,4,1,NULL),(34,6,'Huevo estrellado',8.00,0,'Extras','multiple',0,3,4,3,NULL),(35,6,'Bien picoso',0.00,1,'Nivel de picante','unica',1,1,2,3,NULL),(36,6,'Medio',0.00,1,'Nivel de picante','unica',1,1,2,2,NULL),(37,6,'Suave',0.00,1,'Nivel de picante','unica',1,1,2,1,NULL),(38,6,'Salsa roja',0.00,1,'Salsa','unica',1,1,1,2,'Con chile de ├írbol'),(39,6,'Salsa verde',0.00,1,'Salsa','unica',1,1,1,1,'La de casa, medianamente picante'),(40,6,'Sin salsa',0.00,1,'Salsa','unica',1,1,1,3,NULL),(41,3,'Aguacate',12.00,0,'Extras','multiple',0,4,3,2,NULL),(42,3,'Doble carne',22.00,0,'Extras','multiple',0,4,3,3,NULL),(43,3,'Extra queso',10.00,0,'Extras','multiple',0,4,3,1,NULL),(44,3,'Jalape├▒os',5.00,0,'Extras','multiple',0,4,3,4,NULL),(45,3,'Chipotle',0.00,1,'Salsa','unica',1,1,2,1,NULL),(46,3,'Sin salsa',0.00,1,'Salsa','unica',1,1,2,3,NULL),(47,3,'Verde',0.00,1,'Salsa','unica',1,1,2,2,NULL),(48,3,'Sin cebolla',0.00,0,'Sin ingredientes','multiple',0,4,4,1,NULL),(49,3,'Sin jitomate',0.00,0,'Sin ingredientes','multiple',0,4,4,2,NULL),(50,3,'Sin mayonesa',0.00,0,'Sin ingredientes','multiple',0,4,4,3,NULL),(51,3,'Bolillo',0.00,1,'Tipo de pan','unica',1,1,1,1,NULL),(52,3,'Pan integral',5.00,1,'Tipo de pan','unica',1,1,1,3,NULL),(53,3,'Telera',0.00,1,'Tipo de pan','unica',1,1,1,2,NULL),(54,7,'Aguacate',12.00,0,'Extras','multiple',0,4,3,2,NULL),(55,7,'Doble carne',22.00,0,'Extras','multiple',0,4,3,3,NULL),(56,7,'Extra queso',10.00,0,'Extras','multiple',0,4,3,1,NULL),(57,7,'Jalape├▒os',5.00,0,'Extras','multiple',0,4,3,4,NULL),(58,7,'Chipotle',0.00,1,'Salsa','unica',1,1,2,1,NULL),(59,7,'Sin salsa',0.00,1,'Salsa','unica',1,1,2,3,NULL),(60,7,'Verde',0.00,1,'Salsa','unica',1,1,2,2,NULL),(61,7,'Sin cebolla',0.00,0,'Sin ingredientes','multiple',0,4,4,1,NULL),(62,7,'Sin jitomate',0.00,0,'Sin ingredientes','multiple',0,4,4,2,NULL),(63,7,'Sin mayonesa',0.00,0,'Sin ingredientes','multiple',0,4,4,3,NULL),(64,7,'Bolillo',0.00,1,'Tipo de pan','unica',1,1,1,1,NULL),(65,7,'Pan integral',5.00,1,'Tipo de pan','unica',1,1,1,3,NULL),(66,7,'Telera',0.00,1,'Tipo de pan','unica',1,1,1,2,NULL),(67,4,'Az├║car',0.00,0,'Endulzante','multiple',0,2,4,1,NULL),(68,4,'Miel de abeja',5.00,0,'Endulzante','multiple',0,2,4,3,NULL),(69,4,'Splenda',0.00,0,'Endulzante','multiple',0,2,4,2,NULL),(70,4,'Canela',0.00,0,'Extras','multiple',0,3,5,2,NULL),(71,4,'Crema batida',10.00,0,'Extras','multiple',0,3,5,3,NULL),(72,4,'Shot extra de caf├®',12.00,0,'Extras','multiple',0,3,5,1,NULL),(73,4,'Chico 355 ml',0.00,1,'Tama├▒o','unica',1,1,1,1,NULL),(74,4,'Grande 591 ml',15.00,1,'Tama├▒o','unica',1,1,1,3,NULL),(75,4,'Mediano 473 ml',8.00,1,'Tama├▒o','unica',1,1,1,2,NULL),(76,4,'Caliente',0.00,1,'Temperatura','unica',1,1,2,1,NULL),(77,4,'Con hielo',0.00,1,'Temperatura','unica',1,1,2,2,NULL),(78,4,'De almendra',12.00,0,'Tipo de leche','unica',0,1,3,3,NULL),(79,4,'Deslactosada',7.00,0,'Tipo de leche','unica',0,1,3,2,NULL),(80,4,'Entera',0.00,0,'Tipo de leche','unica',0,1,3,1,NULL),(81,5,'Individual',0.00,1,'Tama├▒o','unica',1,1,1,1,NULL),(82,5,'Para compartir',18.00,1,'Tama├▒o','unica',1,1,1,2,NULL),(83,5,'Cacahuates',6.00,0,'Toppings','multiple',0,4,2,5,NULL),(84,5,'Chile en polvo',0.00,0,'Toppings','multiple',0,4,2,2,NULL),(85,5,'Cueritos',10.00,0,'Toppings','multiple',0,4,2,4,NULL),(86,5,'Queso amarillo',8.00,0,'Toppings','multiple',0,4,2,1,NULL),(87,5,'Salsa Valentina',0.00,0,'Toppings','multiple',0,4,2,3,NULL);
 /*!40000 ALTER TABLE `personalizaciones_producto` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `plantillas_personalizacion`
+--
+
+DROP TABLE IF EXISTS `plantillas_personalizacion`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `plantillas_personalizacion` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `categoria_id` int NOT NULL,
+  `nombre_grupo` varchar(50) NOT NULL,
+  `tipo_grupo` enum('unica','multiple') NOT NULL DEFAULT 'multiple',
+  `es_requerido` tinyint(1) NOT NULL DEFAULT '0',
+  `min_selecciones` int NOT NULL DEFAULT '0',
+  `max_selecciones` int DEFAULT NULL,
+  `orden` int NOT NULL DEFAULT '0',
+  `orden_opcion` int NOT NULL DEFAULT '0',
+  `nombre` varchar(100) NOT NULL,
+  `precio_adicional` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `descripcion` varchar(120) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_plantilla_opcion` (`categoria_id`,`nombre_grupo`,`nombre`),
+  CONSTRAINT `plantillas_personalizacion_ibfk_1` FOREIGN KEY (`categoria_id`) REFERENCES `categorias` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=52 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `plantillas_personalizacion`
+--
+
+LOCK TABLES `plantillas_personalizacion` WRITE;
+/*!40000 ALTER TABLE `plantillas_personalizacion` DISABLE KEYS */;
+INSERT INTO `plantillas_personalizacion` VALUES (1,1,'Extras','multiple',0,0,3,1,1,'Extra queso',10.00,NULL),(2,1,'Extras','multiple',0,0,3,1,2,'Porci├│n extra',18.00,NULL),(3,1,'Sin ingredientes','multiple',0,0,4,2,1,'Sin cebolla',0.00,NULL),(4,1,'Sin ingredientes','multiple',0,0,4,2,2,'Sin crema',0.00,NULL),(5,1,'Sin ingredientes','multiple',0,0,4,2,3,'Sin picante',0.00,NULL),(6,2,'Salsa','unica',1,1,1,1,1,'Salsa verde',0.00,'La de casa, medianamente picante'),(7,2,'Salsa','unica',1,1,1,1,2,'Salsa roja',0.00,'Con chile de ├írbol'),(8,2,'Salsa','unica',1,1,1,1,3,'Sin salsa',0.00,NULL),(9,2,'Nivel de picante','unica',1,1,1,2,1,'Suave',0.00,NULL),(10,2,'Nivel de picante','unica',1,1,1,2,2,'Medio',0.00,NULL),(11,2,'Nivel de picante','unica',1,1,1,2,3,'Bien picoso',0.00,NULL),(12,2,'Acompa├▒amiento','unica',0,0,1,3,1,'Frijoles refritos',12.00,NULL),(13,2,'Acompa├▒amiento','unica',0,0,1,3,2,'Papas cambray',15.00,NULL),(14,2,'Extras','multiple',0,0,3,4,1,'Extra queso',10.00,NULL),(15,2,'Extras','multiple',0,0,3,4,2,'Extra pollo',15.00,NULL),(16,2,'Extras','multiple',0,0,3,4,3,'Huevo estrellado',8.00,NULL),(17,2,'Extras','multiple',0,0,3,4,4,'Aguacate',12.00,NULL),(18,3,'Tipo de pan','unica',1,1,1,1,1,'Bolillo',0.00,NULL),(19,3,'Tipo de pan','unica',1,1,1,1,2,'Telera',0.00,NULL),(20,3,'Tipo de pan','unica',1,1,1,1,3,'Pan integral',5.00,NULL),(21,3,'Salsa','unica',1,1,1,2,1,'Chipotle',0.00,NULL),(22,3,'Salsa','unica',1,1,1,2,2,'Verde',0.00,NULL),(23,3,'Salsa','unica',1,1,1,2,3,'Sin salsa',0.00,NULL),(24,3,'Extras','multiple',0,0,4,3,1,'Extra queso',10.00,NULL),(25,3,'Extras','multiple',0,0,4,3,2,'Aguacate',12.00,NULL),(26,3,'Extras','multiple',0,0,4,3,3,'Doble carne',22.00,NULL),(27,3,'Extras','multiple',0,0,4,3,4,'Jalape├▒os',5.00,NULL),(28,3,'Sin ingredientes','multiple',0,0,4,4,1,'Sin cebolla',0.00,NULL),(29,3,'Sin ingredientes','multiple',0,0,4,4,2,'Sin jitomate',0.00,NULL),(30,3,'Sin ingredientes','multiple',0,0,4,4,3,'Sin mayonesa',0.00,NULL),(31,4,'Tama├▒o','unica',1,1,1,1,1,'Chico 355 ml',0.00,NULL),(32,4,'Tama├▒o','unica',1,1,1,1,2,'Mediano 473 ml',8.00,NULL),(33,4,'Tama├▒o','unica',1,1,1,1,3,'Grande 591 ml',15.00,NULL),(34,4,'Temperatura','unica',1,1,1,2,1,'Caliente',0.00,NULL),(35,4,'Temperatura','unica',1,1,1,2,2,'Con hielo',0.00,NULL),(36,4,'Tipo de leche','unica',0,0,1,3,1,'Entera',0.00,NULL),(37,4,'Tipo de leche','unica',0,0,1,3,2,'Deslactosada',7.00,NULL),(38,4,'Tipo de leche','unica',0,0,1,3,3,'De almendra',12.00,NULL),(39,4,'Endulzante','multiple',0,0,2,4,1,'Az├║car',0.00,NULL),(40,4,'Endulzante','multiple',0,0,2,4,2,'Splenda',0.00,NULL),(41,4,'Endulzante','multiple',0,0,2,4,3,'Miel de abeja',5.00,NULL),(42,4,'Extras','multiple',0,0,3,5,1,'Shot extra de caf├®',12.00,NULL),(43,4,'Extras','multiple',0,0,3,5,2,'Canela',0.00,NULL),(44,4,'Extras','multiple',0,0,3,5,3,'Crema batida',10.00,NULL),(45,5,'Tama├▒o','unica',1,1,1,1,1,'Individual',0.00,NULL),(46,5,'Tama├▒o','unica',1,1,1,1,2,'Para compartir',18.00,NULL),(47,5,'Toppings','multiple',0,0,4,2,1,'Queso amarillo',8.00,NULL),(48,5,'Toppings','multiple',0,0,4,2,2,'Chile en polvo',0.00,NULL),(49,5,'Toppings','multiple',0,0,4,2,3,'Salsa Valentina',0.00,NULL),(50,5,'Toppings','multiple',0,0,4,2,4,'Cueritos',10.00,NULL),(51,5,'Toppings','multiple',0,0,4,2,5,'Cacahuates',6.00,NULL);
+/*!40000 ALTER TABLE `plantillas_personalizacion` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -389,7 +471,7 @@ CREATE TABLE `usuarios` (
   UNIQUE KEY `correo` (`correo`),
   KEY `idx_usuario_correo` (`correo`),
   KEY `idx_usuario_matricula` (`matricula`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -398,7 +480,7 @@ CREATE TABLE `usuarios` (
 
 LOCK TABLES `usuarios` WRITE;
 /*!40000 ALTER TABLE `usuarios` DISABLE KEYS */;
-INSERT INTO `usuarios` VALUES (1,'2230110','Sebastian Ruiz','sebastian@upmh.edu.mx','$2b$10$OENWuyp.DCVZRmgTUKco7uW3Gv3LKzfigRJh3982Jwngfmihk1/9W','Ingenieria en Software','admin','ninguno','2026-05-30 17:15:45'),(2,'233110970','Edgar Montaño Hernandez','233110970@upmh.edu.mx','$2b$10$yrAN.rnZZDvQt6B4IpAzv.txP2vKyRkXSybar6vPi2Df7WIAeBcsa','Tecnologías de la Información e Innovación Digital','alumno','medio','2026-06-22 19:43:08'),(3,'233112186','Emmanuel Tapia','233112186@upmh.edu.mx','$2b$10$LkKCxc5ANA32rrlyXfE88OS5EUDrF1edeYJocSwUISwh.V4rsaNvW','Tecnologías de la Información e Innovación Digital','alumno','medio','2026-06-22 23:35:05');
+INSERT INTO `usuarios` VALUES (1,'2230110','Sebastian Ruiz','sebastian@upmh.edu.mx','$2b$10$OENWuyp.DCVZRmgTUKco7uW3Gv3LKzfigRJh3982Jwngfmihk1/9W','Ingenieria en Software','admin','ninguno','2026-05-30 17:15:45'),(2,'233110970','Edgar Montaño Hernandez','233110970@upmh.edu.mx','$2b$10$yrAN.rnZZDvQt6B4IpAzv.txP2vKyRkXSybar6vPi2Df7WIAeBcsa','Tecnologías de la Información e Innovación Digital','alumno','medio','2026-06-22 19:43:08'),(3,'233112186','Emmanuel Tapia','233112186@upmh.edu.mx','$2b$10$LkKCxc5ANA32rrlyXfE88OS5EUDrF1edeYJocSwUISwh.V4rsaNvW','Tecnologías de la Información e Innovación Digital','alumno','medio','2026-06-22 23:35:05'),(4,'TEST0001','Test QA','qa.test@upmh.edu.mx','$2b$10$k4l/zNLh4zS9bDQSLTVqfeD6v77vQatkWEFX6RJ42AS3fYb3psVFO','QA','admin','medio','2026-08-11 06:00:33');
 /*!40000 ALTER TABLE `usuarios` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -411,4 +493,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-07-07 22:41:20
+-- Dump completed on 2026-08-16  0:17:33

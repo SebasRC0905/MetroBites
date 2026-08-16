@@ -1,17 +1,23 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
-import productService from "../../services/productService";
-import categoryService from "../../services/categoryService";
+import { AnimatePresence, motion } from "framer-motion";
 
 import ProductCard from "../../components/ProductCard";
 import Icon from "../../components/Icon";
 import EmptyState from "../../components/EmptyState";
+import AnimatedNumber from "../../components/AnimatedNumber";
 import { SkeletonGrid } from "../../components/Skeleton";
 import WeatherWidget from "../../components/WeatherWidget";
+import HolidayNotice from "../../components/HolidayNotice";
+import CurrencySwitcher from "../../components/CurrencySwitcher";
+
+import { useProductos, useCategorias } from "../../hooks/useProducts";
+import useDebounce from "../../hooks/useDebounce";
 
 import { useCart } from "../../context/CartContext";
 import { useAuth } from "../../context/AuthContext";
+
+import { listaVariants, resorte } from "../../lib/motion";
 
 import "./Home.css";
 
@@ -33,51 +39,36 @@ const categoryIcons = {
 };
 
 function Home() {
-  const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState(fallbackCategories);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Todos");
 
-  const { total, items } = useCart();
+  /*
+   La búsqueda se retrasa un poco: filtrar en cada tecla hace que la
+   lista parpadee mientras se escribe.
+  */
+  const busqueda = useDebounce(search, 220);
+
+  const { data: products = [], isLoading } = useProductos();
+  const { data: categoriasApi } = useCategorias();
+
+  const { total, totalUnidades } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const loadProducts = async () => {
-      try {
-        const response = await productService.getProducts();
-
-        setProducts(response.data);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    const loadCategories = async () => {
-      try {
-        const response = await categoryService.getCategories();
-
-        if (Array.isArray(response.data) && response.data.length > 0) {
-          setCategories(response.data.map((item) => item.nombre));
-        }
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
-    loadProducts();
-    loadCategories();
-  }, []);
+  const categories = useMemo(
+    () =>
+      Array.isArray(categoriasApi) && categoriasApi.length > 0
+        ? categoriasApi.map((item) => item.nombre)
+        : fallbackCategories,
+    [categoriasApi],
+  );
 
   const filteredProducts = useMemo(
     () =>
       products.filter((product) => {
         const matchesSearch = product.nombre
           .toLowerCase()
-          .includes(search.trim().toLowerCase());
+          .includes(busqueda.trim().toLowerCase());
 
         const matchesCategory =
           selectedCategory === "Todos"
@@ -86,7 +77,7 @@ function Home() {
 
         return matchesSearch && matchesCategory;
       }),
-    [products, search, selectedCategory],
+    [products, busqueda, selectedCategory],
   );
 
   const firstName = user?.nombre?.split(" ")[0] || "";
@@ -109,23 +100,42 @@ function Home() {
         </div>
 
         <div className="home-bar-user">
+          <CurrencySwitcher />
+
           <div className="home-identity">
             <span className="mb-avatar sm">{userInitial}</span>
             <span>{firstName}</span>
           </div>
 
-          <button
+          <motion.button
             type="button"
             className="home-cart"
             onClick={() => navigate("/cart")}
+            whileTap={{ scale: 0.96 }}
+            transition={resorte}
           >
             <span className="home-cart-icon">
               <Icon name="cart" size={19} />
-              {items.length > 0 && <i>{items.length}</i>}
+
+              <AnimatePresence>
+                {totalUnidades > 0 && (
+                  <motion.i
+                    key={totalUnidades}
+                    initial={{ scale: 0.4, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.4, opacity: 0 }}
+                    transition={resorte}
+                  >
+                    {totalUnidades}
+                  </motion.i>
+                )}
+              </AnimatePresence>
             </span>
 
-            <strong>${total.toFixed(2)}</strong>
-          </button>
+            <strong>
+              <AnimatedNumber value={total} decimals={2} prefix="$" />
+            </strong>
+          </motion.button>
         </div>
       </header>
 
@@ -169,7 +179,7 @@ function Home() {
         <dl className="home-hero-stats">
           <div>
             <dt>Productos</dt>
-            <dd>{loading ? "—" : products.length}</dd>
+            <dd>{isLoading ? "—" : products.length}</dd>
           </div>
 
           <div>
@@ -179,29 +189,38 @@ function Home() {
         </dl>
       </section>
 
-      <WeatherWidget
-        onSuggest={(categoria) => {
-          setSelectedCategory(categoria);
+      <div className="home-widgets">
+        <WeatherWidget
+          onSuggest={(categoria) => {
+            setSelectedCategory(categoria);
 
-          document
-            .getElementById("home-products")
-            ?.scrollIntoView({ behavior: "smooth", block: "start" });
-        }}
-      />
+            document
+              .getElementById("home-products")
+              ?.scrollIntoView({ behavior: "smooth", block: "start" });
+          }}
+        />
+
+        <HolidayNotice />
+      </div>
 
       <nav className="home-tabs" aria-label="Categorías">
-        {tabs.map((category, index) => (
-          <button
-            key={category}
-            type="button"
-            className={`mb-chip ${selectedCategory === category ? "is-active" : ""}`}
-            style={{ "--i": index }}
-            onClick={() => setSelectedCategory(category)}
-          >
-            <Icon name={categoryIcons[category] || "utensils"} size={16} />
-            {category}
-          </button>
-        ))}
+        {tabs.map((category) => {
+          const activa = selectedCategory === category;
+
+          return (
+            <motion.button
+              key={category}
+              type="button"
+              className={`mb-chip ${activa ? "is-active" : ""}`}
+              onClick={() => setSelectedCategory(category)}
+              whileTap={{ scale: 0.95 }}
+              transition={resorte}
+            >
+              <Icon name={categoryIcons[category] || "utensils"} size={16} />
+              {category}
+            </motion.button>
+          );
+        })}
       </nav>
 
       <section id="home-products" className="home-products">
@@ -213,7 +232,7 @@ function Home() {
           </h2>
 
           <span>
-            {loading
+            {isLoading
               ? "Cargando…"
               : `${filteredProducts.length} ${
                   filteredProducts.length === 1 ? "producto" : "productos"
@@ -221,7 +240,7 @@ function Home() {
           </span>
         </div>
 
-        {loading ? (
+        {isLoading ? (
           <SkeletonGrid count={6} className="home-grid" />
         ) : filteredProducts.length === 0 ? (
           <EmptyState
@@ -242,11 +261,19 @@ function Home() {
             }
           />
         ) : (
-          <div className="home-grid">
-            {filteredProducts.map((product, index) => (
-              <ProductCard key={product.id} product={product} index={index} />
-            ))}
-          </div>
+          <motion.div
+            className="home-grid"
+            variants={listaVariants}
+            initial="initial"
+            animate="animate"
+            key={`${selectedCategory}-${busqueda}`}
+          >
+            <AnimatePresence mode="popLayout">
+              {filteredProducts.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </AnimatePresence>
+          </motion.div>
         )}
       </section>
     </div>

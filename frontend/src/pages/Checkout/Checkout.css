@@ -394,6 +394,14 @@
   font-size: 12px;
 }
 
+.checkout-list-name em {
+  display: block;
+  margin-top: 3px;
+  color: var(--violet-700);
+  font-size: 12px;
+  font-style: italic;
+}
+
 .checkout-list strong {
   color: var(--ink);
   font-family: var(--font-display);

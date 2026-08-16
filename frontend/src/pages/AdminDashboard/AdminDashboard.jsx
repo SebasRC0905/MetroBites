@@ -1,20 +1,49 @@
-import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQueries } from "@tanstack/react-query";
+import { motion } from "framer-motion";
+import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 
 import dashboardService from "../../services/dashboardService";
 
 import Icon from "../../components/Icon";
+import AnimatedNumber from "../../components/AnimatedNumber";
 import { SkeletonLine } from "../../components/Skeleton";
+
+import { itemVariants, listaVariants } from "../../lib/motion";
 
 import "./AdminDashboard.css";
 
 const statusBreakdown = [
+  { key: "pedidos_pendiente_pago", label: "Pago pendiente", tone: "amber" },
   { key: "pedidos_recibidos", label: "Recibidos", tone: "blue" },
+  { key: "pedidos_confirmados", label: "Confirmados", tone: "violet" },
   { key: "pedidos_preparando", label: "Preparando", tone: "amber" },
-  { key: "pedidos_listos", label: "Listos", tone: "violet" },
+  { key: "pedidos_listos", label: "Listos", tone: "green" },
   { key: "pedidos_entregados", label: "Entregados", tone: "green" },
   { key: "pedidos_cancelados", label: "Cancelados", tone: "red" },
+  { key: "pedidos_rechazados", label: "Rechazados", tone: "red" },
+  { key: "pedidos_no_recogidos", label: "No recogidos", tone: "neutral" },
 ];
+
+/* Fecha corta para el eje de la gráfica: "12 ago". */
+const diaCorto = (iso) => {
+  const [anio, mes, dia] = iso.split("-").map(Number);
+
+  return new Date(anio, mes - 1, dia).toLocaleDateString("es-MX", {
+    day: "numeric",
+    month: "short",
+  });
+};
 
 const shortcuts = [
   {
@@ -52,32 +81,52 @@ const currency = (value) =>
 function AdminDashboard() {
   const navigate = useNavigate();
 
-  const [summary, setSummary] = useState(null);
-  const [today, setToday] = useState(null);
-  const [topProducts, setTopProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  /*
+   Las cinco consultas del panel se piden en paralelo con React Query:
+   se cachean, se recargan solas al volver a la pestaña y cada una
+   maneja su propio error sin tumbar al resto.
+  */
+  const [resumen, ventasHoy, top, serie, porHora] = useQueries({
+    queries: [
+      {
+        queryKey: ["dashboard", "resumen"],
+        queryFn: dashboardService.getSummary,
+        select: (r) => r.data,
+      },
+      {
+        queryKey: ["dashboard", "ventas-hoy"],
+        queryFn: dashboardService.getTodaySales,
+        select: (r) => r.data,
+      },
+      {
+        queryKey: ["dashboard", "top-productos"],
+        queryFn: dashboardService.getTopProducts,
+        select: (r) => r.data || [],
+      },
+      {
+        queryKey: ["dashboard", "ventas-por-dia"],
+        queryFn: () => dashboardService.getSalesByDay(7),
+        select: (r) => r.data || [],
+      },
+      {
+        queryKey: ["dashboard", "pedidos-por-hora"],
+        queryFn: dashboardService.getOrdersByHour,
+        select: (r) => r.data || [],
+      },
+    ],
+  });
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const [summaryRes, todayRes, topRes] = await Promise.all([
-          dashboardService.getSummary(),
-          dashboardService.getTodaySales(),
-          dashboardService.getTopProducts(),
-        ]);
+  const summary = resumen.data;
+  const today = ventasHoy.data;
+  const topProducts = top.data || [];
+  const loading = resumen.isLoading || ventasHoy.isLoading;
 
-        setSummary(summaryRes.data);
-        setToday(todayRes.data);
-        setTopProducts(topRes.data || []);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const serieVentas = (serie.data || []).map((punto) => ({
+    ...punto,
+    etiqueta: diaCorto(punto.dia),
+  }));
 
-    load();
-  }, []);
+  const horas = (porHora.data || []).filter((punto) => punto.pedidos > 0);
 
   const totalPedidos = statusBreakdown.reduce(
     (acc, item) => acc + Number(summary?.[item.key] || 0),
@@ -85,7 +134,9 @@ function AdminDashboard() {
   );
 
   const activos =
+    Number(summary?.pedidos_pendiente_pago || 0) +
     Number(summary?.pedidos_recibidos || 0) +
+    Number(summary?.pedidos_confirmados || 0) +
     Number(summary?.pedidos_preparando || 0) +
     Number(summary?.pedidos_listos || 0);
 
@@ -97,25 +148,29 @@ function AdminDashboard() {
   const kpis = [
     {
       label: "Ventas totales",
-      value: currency(summary?.ventas_totales),
+      raw: Number(summary?.ventas_totales || 0),
+      prefix: "$",
+      decimals: 2,
       icon: "trendingUp",
       tone: "violet",
     },
     {
       label: "Ingresos de hoy",
-      value: currency(today?.ingresos_hoy),
+      raw: Number(today?.ingresos_hoy || 0),
+      prefix: "$",
+      decimals: 2,
       icon: "wallet",
       tone: "coral",
     },
     {
       label: "Pedidos de hoy",
-      value: Number(today?.pedidos_hoy || 0),
+      raw: Number(today?.pedidos_hoy || 0),
       icon: "receipt",
       tone: "green",
     },
     {
       label: "Pedidos activos",
-      value: activos,
+      raw: activos,
       icon: "clock",
       tone: "blue",
     },
@@ -147,12 +202,18 @@ function AdminDashboard() {
         </button>
       </section>
 
-      <section className="dashboard-kpis">
-        {kpis.map((kpi, index) => (
-          <article
+      <motion.section
+        className="dashboard-kpis"
+        variants={listaVariants}
+        initial="initial"
+        animate="animate"
+      >
+        {kpis.map((kpi) => (
+          <motion.article
             key={kpi.label}
-            className={`dashboard-kpi tone-${kpi.tone} mb-reveal`}
-            style={{ "--i": index }}
+            className={`dashboard-kpi tone-${kpi.tone}`}
+            variants={itemVariants}
+            whileHover={{ y: -4 }}
           >
             <span className="dashboard-kpi-icon">
               <Icon name={kpi.icon} size={19} />
@@ -164,11 +225,82 @@ function AdminDashboard() {
               {loading ? (
                 <SkeletonLine width={90} height={24} style={{ marginTop: 8 }} />
               ) : (
-                <strong>{kpi.value}</strong>
+                <strong>
+                  <AnimatedNumber
+                    value={kpi.raw}
+                    decimals={kpi.decimals ?? 0}
+                    prefix={kpi.prefix ?? ""}
+                  />
+                </strong>
               )}
             </div>
-          </article>
+          </motion.article>
         ))}
+      </motion.section>
+
+      <section className="dashboard-panel dashboard-chart">
+        <div className="mb-section-head">
+          <h2>Ventas de los últimos 7 días</h2>
+          <span>Ingresos por día</span>
+        </div>
+
+        {serie.isLoading ? (
+          <SkeletonLine height={220} radius={14} />
+        ) : (
+          <ResponsiveContainer width="100%" height={230}>
+            <AreaChart
+              data={serieVentas}
+              margin={{ top: 8, right: 8, left: -18, bottom: 0 }}
+            >
+              <defs>
+                <linearGradient id="ingresos" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#7c3aed" stopOpacity={0.36} />
+                  <stop offset="100%" stopColor="#7c3aed" stopOpacity={0.02} />
+                </linearGradient>
+              </defs>
+
+              <CartesianGrid
+                strokeDasharray="4 6"
+                stroke="rgba(20, 18, 31, 0.08)"
+                vertical={false}
+              />
+
+              <XAxis
+                dataKey="etiqueta"
+                tickLine={false}
+                axisLine={false}
+                tick={{ fill: "#6e6a85", fontSize: 12 }}
+              />
+
+              <YAxis
+                tickLine={false}
+                axisLine={false}
+                tick={{ fill: "#6e6a85", fontSize: 12 }}
+                width={62}
+                tickFormatter={(valor) => `$${valor}`}
+              />
+
+              <Tooltip
+                cursor={{ stroke: "rgba(124, 58, 237, 0.28)" }}
+                contentStyle={{
+                  borderRadius: 14,
+                  border: "1px solid rgba(20, 18, 31, 0.08)",
+                  boxShadow: "0 14px 38px rgba(35, 18, 74, 0.14)",
+                  fontSize: 13,
+                }}
+                formatter={(valor) => [currency(valor), "Ingresos"]}
+              />
+
+              <Area
+                type="monotone"
+                dataKey="ingresos"
+                stroke="#6023be"
+                strokeWidth={2.4}
+                fill="url(#ingresos)"
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        )}
       </section>
 
       <div className="dashboard-grid">
@@ -247,6 +379,67 @@ function AdminDashboard() {
               );
             })}
           </ul>
+        </section>
+
+        <section className="dashboard-panel">
+          <div className="mb-section-head">
+            <h2>Pedidos por hora</h2>
+            <span>¿Cuándo se satura la cafetería?</span>
+          </div>
+
+          {porHora.isLoading ? (
+            <SkeletonLine height={200} radius={14} />
+          ) : horas.length === 0 ? (
+            <p className="dashboard-empty">
+              Todavía no hay pedidos suficientes.
+            </p>
+          ) : (
+            <ResponsiveContainer width="100%" height={210}>
+              <BarChart
+                data={horas}
+                margin={{ top: 8, right: 8, left: -22, bottom: 0 }}
+              >
+                <CartesianGrid
+                  strokeDasharray="4 6"
+                  stroke="rgba(20, 18, 31, 0.08)"
+                  vertical={false}
+                />
+
+                <XAxis
+                  dataKey="etiqueta"
+                  tickLine={false}
+                  axisLine={false}
+                  tick={{ fill: "#6e6a85", fontSize: 12 }}
+                />
+
+                <YAxis
+                  allowDecimals={false}
+                  tickLine={false}
+                  axisLine={false}
+                  tick={{ fill: "#6e6a85", fontSize: 12 }}
+                  width={44}
+                />
+
+                <Tooltip
+                  cursor={{ fill: "rgba(124, 58, 237, 0.08)" }}
+                  contentStyle={{
+                    borderRadius: 14,
+                    border: "1px solid rgba(20, 18, 31, 0.08)",
+                    boxShadow: "0 14px 38px rgba(35, 18, 74, 0.14)",
+                    fontSize: 13,
+                  }}
+                  formatter={(valor) => [valor, "Pedidos"]}
+                />
+
+                <Bar
+                  dataKey="pedidos"
+                  fill="#f97a5c"
+                  radius={[8, 8, 4, 4]}
+                  maxBarSize={38}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
         </section>
       </div>
 

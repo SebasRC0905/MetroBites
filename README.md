@@ -3,9 +3,12 @@
 Sistema web para pedidos de cafetería universitaria desarrollado con:
 
 * React + Vite
+* React Query (estado del servidor) y Framer Motion (animaciones)
+* Recharts (gráficas del panel)
 * Node.js + Express
 * MySQL
 * JWT Authentication
+* Server-Sent Events para el seguimiento de pedidos en vivo
 
 ---
 
@@ -114,6 +117,22 @@ Repetir el proceso usando:
 ```text
 database/seed.sql
 ```
+
+---
+
+## Migraciones
+
+`database/schema.sql` ya incluye la estructura más reciente. Las
+migraciones solo se aplican sobre una base **creada antes** de esos
+cambios, en orden y una sola vez:
+
+```bash
+mysql -u root -p metrobites_db < database/migrations/001_metodos_pago_pedidos.sql
+mysql -u root -p metrobites_db < database/migrations/002_estados_pedido_y_personalizacion.sql
+```
+
+La migración 002 agrega el ciclo de vida completo del pedido, la
+bitácora de estados y las plantillas de personalización por categoría.
 
 ---
 
@@ -287,15 +306,40 @@ MetroBites
 
 * Listado de productos
 * Categorías
-* Personalizaciones
+* Personalización por tipo de comida (grupos de opción única o
+  múltiple, con mínimos y máximos, más notas para la cocina)
 * Administración de productos
 
 ## Pedidos
 
 * Crear pedido
 * Historial de pedidos
-* Seguimiento de estado
-* Dashboard administrativo
+* Seguimiento en vivo (SSE) con línea de tiempo y tiempo estimado
+* Cancelación desde la app mientras el pedido no entra a cocina
+* Tablero administrativo por estados con bitácora
+
+## Ciclo de vida del pedido
+
+```text
+pendiente_pago → recibido → confirmado → preparando → listo → entregado
+```
+
+Salidas de excepción: `cancelado` (alumno o cafetería), `rechazado`
+(la cafetería no lo puede tomar) y `no_recogido`. Cada cambio queda
+registrado en `historial_estados_pedido` con quién lo hizo y por qué;
+cancelar o rechazar exige un motivo que el alumno alcanza a ver.
+
+## Integraciones con APIs públicas
+
+| Servicio | Uso en la app |
+| --- | --- |
+| Open-Meteo | Clima del campus y sugerencia de categoría |
+| Open Food Facts | Referencia nutrimental de cada platillo |
+| Frankfurter (BCE) | Precios en dólares o euros |
+| Nager.Date | Días festivos en que la cafetería no abre |
+
+Ninguna requiere llave ni pago. El detalle de cada endpoint está en
+`backend/API_DOCUMENTATION.md`.
 
 ## Favoritos
 

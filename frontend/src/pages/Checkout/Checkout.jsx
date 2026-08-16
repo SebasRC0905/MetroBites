@@ -164,6 +164,9 @@ function Checkout() {
         cantidad: item.cantidad,
 
         personalizaciones: item.personalizaciones.map((p) => p.id),
+
+        // Instrucciones que el alumno escribió para la cocina.
+        notas: item.notas || undefined,
       }));
 
       const response = await pedidoService.createOrder({
@@ -465,8 +468,8 @@ function Checkout() {
           <h2>Resumen de tu orden</h2>
 
           <ul className="checkout-list">
-            {items.map((item, index) => (
-              <li key={`${item.producto_id}-${index}`}>
+            {items.map((item) => (
+              <li key={item.uid}>
                 <span className="checkout-list-qty">{item.cantidad}x</span>
 
                 <span className="checkout-list-name">
@@ -479,6 +482,8 @@ function Checkout() {
                         .join(" · ")}
                     </small>
                   )}
+
+                  {item.notas && <em>“{item.notas}”</em>}
                 </span>
 
                 <strong>${item.subtotal.toFixed(2)}</strong>

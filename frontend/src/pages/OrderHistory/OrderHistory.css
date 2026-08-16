@@ -137,6 +137,12 @@
   font-size: 18px;
 }
 
+.history-row-state {
+  margin-top: 6px;
+  color: var(--violet-700);
+  font-size: 12.5px;
+}
+
 .history-row-code {
   display: flex;
   flex-wrap: wrap;

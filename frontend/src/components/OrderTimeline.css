@@ -1,0 +1,110 @@
+.timeline {
+  display: grid;
+  gap: 2px;
+  position: relative;
+}
+
+.timeline-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  padding-bottom: 16px;
+}
+
+/* Línea que une un paso con el siguiente. */
+.timeline-item:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  top: 26px;
+  bottom: 2px;
+  left: 12px;
+  width: 2px;
+  background: var(--line);
+}
+
+.timeline-dot {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  color: #ffffff;
+  background: var(--muted-soft);
+  border-radius: var(--r-pill);
+  box-shadow: 0 0 0 3px var(--surface);
+}
+
+.timeline-dot.violet {
+  background: var(--violet-600);
+}
+
+.timeline-dot.blue {
+  background: var(--info);
+}
+
+.timeline-dot.amber {
+  background: var(--warning);
+}
+
+.timeline-dot.green {
+  background: var(--emerald-600);
+}
+
+.timeline-dot.red {
+  background: var(--danger);
+}
+
+.timeline-dot.neutral {
+  background: var(--muted);
+}
+
+.timeline-item.is-current .timeline-dot {
+  animation: popIn 0.35s var(--ease-out) both;
+}
+
+.timeline-body {
+  display: grid;
+  gap: 3px;
+  padding-top: 2px;
+}
+
+.timeline-head {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.timeline-head strong {
+  font-family: var(--font-display);
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.timeline-head time {
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+.timeline-note {
+  padding: 7px 10px;
+  color: var(--ink-soft);
+  background: var(--surface-muted);
+  border-radius: var(--r-xs);
+  font-size: 12.5px;
+}
+
+.timeline-actor {
+  font-size: 11.5px;
+  color: var(--muted-soft);
+  text-transform: capitalize;
+}
+
+.timeline.is-compact .timeline-item {
+  padding-bottom: 12px;
+}
+
+.timeline.is-compact .timeline-actor {
+  display: none;
+}

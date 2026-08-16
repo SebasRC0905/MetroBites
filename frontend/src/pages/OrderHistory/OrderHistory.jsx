@@ -1,27 +1,37 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { AnimatePresence, motion } from "framer-motion";
 
 import historyService from "../../services/historyService";
 
 import Icon from "../../components/Icon";
 import EmptyState from "../../components/EmptyState";
+import StatusBadge from "../../components/StatusBadge";
+import AnimatedNumber from "../../components/AnimatedNumber";
 import { SkeletonGrid } from "../../components/Skeleton";
+
+import useOrderStatuses from "../../hooks/useOrderStatuses";
+
+import { queryKeys } from "../../lib/queryClient";
+import { itemVariants, listaVariants } from "../../lib/motion";
 
 import "./OrderHistory.css";
 
-const statusStyles = {
-  recibido: "blue",
-  preparando: "amber",
-  listo: "violet",
-  entregado: "green",
-  cancelado: "red",
-};
+/* Estados que ya no cambian: sirven para separar "en curso" de "cerrados". */
+const ESTADOS_CERRADOS = [
+  "entregado",
+  "cancelado",
+  "rechazado",
+  "no_recogido",
+];
 
 const filters = [
   { key: "todos", label: "Todos" },
   { key: "activos", label: "En curso" },
   { key: "entregado", label: "Entregados" },
   { key: "cancelado", label: "Cancelados" },
+  { key: "rechazado", label: "Rechazados" },
 ];
 
 const paymentLabels = {
@@ -48,25 +58,19 @@ const formatDate = (value) => {
 function OrderHistory() {
   const navigate = useNavigate();
 
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("todos");
 
-  useEffect(() => {
-    const loadOrders = async () => {
-      try {
-        const response = await historyService.getMyOrders();
+  const { obtener } = useOrderStatuses();
 
-        setOrders(response.data);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const consulta = useQuery({
+    queryKey: queryKeys.misPedidos,
+    queryFn: historyService.getMyOrders,
+    select: (respuesta) => respuesta.data,
+  });
 
-    loadOrders();
-  }, []);
+  const orders = useMemo(() => consulta.data || [], [consulta.data]);
+
+  const loading = consulta.isLoading;
 
   const stats = useMemo(() => {
     const gastado = orders.reduce(
@@ -75,7 +79,7 @@ function OrderHistory() {
     );
 
     const activos = orders.filter(
-      (order) => !["entregado", "cancelado"].includes(order.estado),
+      (order) => !ESTADOS_CERRADOS.includes(order.estado),
     ).length;
 
     return { gastado, activos };
@@ -88,7 +92,7 @@ function OrderHistory() {
 
     if (filter === "activos") {
       return orders.filter(
-        (order) => !["entregado", "cancelado"].includes(order.estado),
+        (order) => !ESTADOS_CERRADOS.includes(order.estado),
       );
     }
 
@@ -129,7 +133,9 @@ function OrderHistory() {
 
           <div>
             <dt>Total</dt>
-            <dd>${stats.gastado.toFixed(2)}</dd>
+            <dd>
+              <AnimatedNumber value={stats.gastado} decimals={2} prefix="$" />
+            </dd>
           </div>
         </dl>
       </section>
@@ -181,12 +187,20 @@ function OrderHistory() {
           }
         />
       ) : (
-        <div className="history-list">
-          {visibleOrders.map((order, index) => (
-            <article
+        <motion.div
+          className="history-list"
+          variants={listaVariants}
+          initial="initial"
+          animate="animate"
+        >
+          <AnimatePresence mode="popLayout">
+          {visibleOrders.map((order) => (
+            <motion.article
               key={order.id}
-              className="history-row mb-reveal"
-              style={{ "--i": index }}
+              layout
+              className="history-row"
+              variants={itemVariants}
+              exit="exit"
             >
               <div className="history-row-main">
                 <div className="history-row-meta">
@@ -194,11 +208,7 @@ function OrderHistory() {
                     {formatDate(order.creado_en)}
                   </span>
 
-                  <span
-                    className={`mb-badge ${statusStyles[order.estado] || "neutral"}`}
-                  >
-                    {order.estado}
-                  </span>
+                  <StatusBadge estado={order.estado} animar={false} />
                 </div>
 
                 <h3>Orden #{order.id}</h3>
@@ -211,6 +221,19 @@ function OrderHistory() {
 
                   <Icon name="wallet" size={14} />
                   {formatPaymentMethod(order)}
+
+                  {order.horario && (
+                    <>
+                      <span className="history-dot" />
+
+                      <Icon name="clock" size={14} />
+                      {order.horario}
+                    </>
+                  )}
+                </p>
+
+                <p className="history-row-state">
+                  {obtener(order.estado).mensajeAlumno}
                 </p>
               </div>
 
@@ -228,9 +251,10 @@ function OrderHistory() {
                   <Icon name="chevronRight" size={16} />
                 </button>
               </div>
-            </article>
+            </motion.article>
           ))}
-        </div>
+          </AnimatePresence>
+        </motion.div>
       )}
     </div>
   );

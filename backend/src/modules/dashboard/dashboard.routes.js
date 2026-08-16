@@ -38,4 +38,22 @@ router.get(
     ),
     dashboardController.getTodaySales
 );
+router.get(
+    '/ventas-por-dia',
+    authMiddleware,
+    roleMiddleware(
+        'admin',
+        'empleado'
+    ),
+    dashboardController.getSalesByDay
+);
+router.get(
+    '/pedidos-por-hora',
+    authMiddleware,
+    roleMiddleware(
+        'admin',
+        'empleado'
+    ),
+    dashboardController.getOrdersByHour
+);
 module.exports = router;

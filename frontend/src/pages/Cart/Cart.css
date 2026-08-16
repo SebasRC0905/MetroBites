@@ -101,9 +101,78 @@
 }
 
 .cart-item-extras {
-  margin-top: 5px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
   color: var(--muted);
-  font-size: 13px;
+  font-size: 12.5px;
+}
+
+.cart-item-extras li {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  padding: 3px 9px;
+  background: var(--surface-muted);
+  border-radius: var(--r-pill);
+}
+
+.cart-item-extras li b {
+  color: var(--violet-700);
+  font-weight: 700;
+}
+
+/* Nota para la cocina por producto */
+
+.cart-item-note {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  align-self: flex-start;
+  margin-top: 9px;
+  padding: 5px 10px;
+  color: var(--muted);
+  background: transparent;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--r-pill);
+  font-size: 12.5px;
+  text-align: left;
+  transition:
+    color var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease);
+}
+
+.cart-item-note:hover {
+  color: var(--violet-700);
+  border-color: var(--violet-200);
+}
+
+.cart-item-note.has-note {
+  color: var(--violet-800);
+  background: var(--violet-50);
+  border-style: solid;
+  border-color: var(--violet-200);
+  font-weight: 600;
+}
+
+.cart-item-note-edit {
+  display: grid;
+  gap: 4px;
+  margin-top: 9px;
+}
+
+.cart-item-note-edit small {
+  font-size: 11px;
+  color: var(--muted-soft);
+}
+
+.cart-summary-currency {
+  margin-top: -6px;
+  margin-bottom: 14px;
+  color: var(--muted);
+  font-size: 12.5px;
+  text-align: right;
 }
 
 .cart-item-foot {

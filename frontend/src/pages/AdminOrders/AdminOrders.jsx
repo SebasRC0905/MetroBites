@@ -1,290 +1,434 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { AnimatePresence, motion } from "framer-motion";
 import toast from "react-hot-toast";
 
 import adminOrderService from "../../services/adminOrderService";
 
 import Icon from "../../components/Icon";
 import EmptyState from "../../components/EmptyState";
+import AnimatedNumber from "../../components/AnimatedNumber";
+import StatusBadge from "../../components/StatusBadge";
 import { SkeletonGrid } from "../../components/Skeleton";
+
+import useOrderStatuses from "../../hooks/useOrderStatuses";
+import useOrderEvents from "../../hooks/useOrderEvents";
+import useDebounce from "../../hooks/useDebounce";
+
+import { queryKeys } from "../../lib/queryClient";
+import { listaVariants } from "../../lib/motion";
+
+import OrderCard from "./OrderCard";
+import OrderDetailDrawer from "./OrderDetailDrawer";
+import StatusReasonDialog from "./StatusReasonDialog";
 
 import "./AdminOrders.css";
 
-const statusLabels = {
-  recibido: "Recibido",
-  preparando: "Preparando",
-  listo: "Listo",
-  entregado: "Entregado",
-  cancelado: "Cancelado",
-};
-
-const statusTones = {
-  recibido: "blue",
-  preparando: "amber",
-  listo: "violet",
-  entregado: "green",
-  cancelado: "red",
-};
-
-const paymentLabels = {
-  tarjeta_credito: "Tarjeta de crédito",
-  tarjeta_debito: "Tarjeta de débito",
-  paypal: "PayPal",
-};
-
-const formatPaymentMethod = (order) => {
-  if (order.metodo_pago_tipo) {
-    const label = paymentLabels[order.metodo_pago_tipo] || order.metodo_pago;
-
-    return order.metodo_pago_alias
-      ? `${label} · ${order.metodo_pago_alias}`
-      : label;
-  }
-
-  return order.metodo_pago;
-};
-
-const statusTransitions = {
-  recibido: ["recibido", "preparando", "cancelado"],
-  preparando: ["preparando", "listo", "cancelado"],
-  listo: ["listo", "entregado"],
-  entregado: ["entregado"],
-  cancelado: ["cancelado"],
-};
-
-const filters = [
-  { key: "activos", label: "En curso" },
-  { key: "todos", label: "Todos" },
-  { key: "recibido", label: "Recibidos" },
-  { key: "preparando", label: "Preparando" },
-  { key: "listo", label: "Listos" },
-  { key: "entregado", label: "Entregados" },
+/* Estados que ya no se trabajan: se muestran aparte, en una lista. */
+const ESTADOS_CERRADOS = [
+  "entregado",
+  "cancelado",
+  "rechazado",
+  "no_recogido",
 ];
 
 function AdminOrders() {
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [updatingId, setUpdatingId] = useState(null);
-  const [filter, setFilter] = useState("activos");
+  const clienteConsultas = useQueryClient();
 
-  const loadOrders = async () => {
-    try {
-      const response = await adminOrderService.getOrdersAdmin();
+  const { obtener, ordenTablero } = useOrderStatuses();
 
-      setOrders(response.data);
-    } catch (error) {
-      console.error(error);
+  const [busqueda, setBusqueda] = useState("");
+  const [verCerrados, setVerCerrados] = useState(false);
+  const [detalleId, setDetalleId] = useState(null);
+  const [accionPendiente, setAccionPendiente] = useState(null);
 
-      toast.error("No pudimos cargar los pedidos");
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
+  const busquedaRetrasada = useDebounce(busqueda, 300);
 
-  useEffect(() => {
-    const init = async () => {
-      await loadOrders();
-    };
+  const filtros = useMemo(
+    () => ({ busqueda: busquedaRetrasada }),
+    [busquedaRetrasada],
+  );
 
-    init();
-  }, []);
+  const pedidosConsulta = useQuery({
+    queryKey: queryKeys.pedidosAdmin(filtros),
+    queryFn: () => adminOrderService.getOrdersAdmin(filtros),
+    select: (respuesta) => respuesta.data,
+    // El stream ya avisa de los cambios; esto es solo una red de apoyo.
+    refetchInterval: 60 * 1000,
+  });
 
-  const handleStatusChange = async (order, estado) => {
-    if (estado === order.estado) {
+  const resumenConsulta = useQuery({
+    queryKey: queryKeys.resumenPedidos,
+    queryFn: adminOrderService.getOrdersSummary,
+    select: (respuesta) => respuesta.data,
+  });
+
+  const pedidos = useMemo(
+    () => pedidosConsulta.data || [],
+    [pedidosConsulta.data],
+  );
+
+  const resumen = resumenConsulta.data;
+
+  /*
+   Cada evento del stream invalida las consultas para que el tablero se
+   redibuje con datos frescos, sin que nadie tenga que dar "Actualizar".
+  */
+  const alRecibirEvento = useCallback(
+    (evento) => {
+      clienteConsultas.invalidateQueries({ queryKey: ["pedidos-admin"] });
+      clienteConsultas.invalidateQueries({ queryKey: queryKeys.resumenPedidos });
+
+      if (evento.pedidoId) {
+        clienteConsultas.invalidateQueries({
+          queryKey: queryKeys.pedido(evento.pedidoId),
+        });
+      }
+
+      if (evento.tipo === "pedido:creado") {
+        toast.success(`Nuevo pedido #${evento.pedidoId}`, { icon: "🔔" });
+      }
+    },
+    [clienteConsultas],
+  );
+
+  const { conectado } = useOrderEvents(alRecibirEvento);
+
+  const mutacion = useMutation({
+    mutationFn: ({ pedido, accion, datos }) =>
+      adminOrderService.updateOrderStatus(pedido.id, {
+        estado: accion.estado,
+        nota: datos?.nota,
+        tiempoEstimado: datos?.tiempoEstimado,
+      }),
+
+    /* Actualización optimista: la tarjeta se mueve de columna al instante. */
+    onMutate: async ({ pedido, accion }) => {
+      await clienteConsultas.cancelQueries({
+        queryKey: queryKeys.pedidosAdmin(filtros),
+      });
+
+      const previo = clienteConsultas.getQueryData(
+        queryKeys.pedidosAdmin(filtros),
+      );
+
+      clienteConsultas.setQueryData(
+        queryKeys.pedidosAdmin(filtros),
+        (actual) =>
+          actual
+            ? {
+                ...actual,
+                data: actual.data.map((item) =>
+                  item.id === pedido.id
+                    ? { ...item, estado: accion.estado }
+                    : item,
+                ),
+              }
+            : actual,
+      );
+
+      return { previo };
+    },
+
+    onError: (error, _variables, contexto) => {
+      if (contexto?.previo) {
+        clienteConsultas.setQueryData(
+          queryKeys.pedidosAdmin(filtros),
+          contexto.previo,
+        );
+      }
+
+      toast.error(
+        error.response?.data?.message || "No se pudo actualizar el pedido",
+      );
+    },
+
+    onSuccess: (respuesta) => {
+      const { pedidoId, estadoNuevo } = respuesta.data;
+
+      toast.success(`Pedido #${pedidoId} → ${obtener(estadoNuevo).etiqueta}`);
+    },
+
+    onSettled: () => {
+      clienteConsultas.invalidateQueries({ queryKey: ["pedidos-admin"] });
+      clienteConsultas.invalidateQueries({ queryKey: queryKeys.resumenPedidos });
+    },
+  });
+
+  /**
+   * Las transiciones que piden motivo (cancelar, rechazar) y las que
+   * aceptan tiempo estimado abren un diálogo; el resto se ejecuta
+   * directo desde la tarjeta.
+   */
+  const manejarAccion = (pedido, accion) => {
+    const pideDatos =
+      accion.requiereMotivo ||
+      accion.estado === "confirmado" ||
+      accion.estado === "preparando";
+
+    if (pideDatos) {
+      setAccionPendiente({ pedido, accion });
+
       return;
     }
 
-    try {
-      setUpdatingId(order.id);
-
-      await adminOrderService.updateOrderStatus(order.id, estado);
-
-      setOrders((prev) =>
-        prev.map((item) =>
-          item.id === order.id
-            ? {
-                ...item,
-                estado,
-              }
-            : item,
-        ),
-      );
-
-      toast.success(`Pedido #${order.id} → ${statusLabels[estado]}`);
-    } catch (error) {
-      console.error(error);
-
-      toast.error(error.response?.data?.message || "Error al actualizar pedido");
-    } finally {
-      setUpdatingId(null);
-    }
+    mutacion.mutate({ pedido, accion });
   };
 
-  const formatDate = (value) =>
-    new Date(value).toLocaleString("es-MX", {
-      dateStyle: "medium",
-      timeStyle: "short",
-    });
-
-  const activeOrders = orders.filter(
-    (order) => !["entregado", "cancelado"].includes(order.estado),
-  ).length;
-
-  const totalSales = orders.reduce(
-    (acc, order) => acc + Number(order.total || 0),
-    0,
+  const columnas = useMemo(
+    () =>
+      ordenTablero.map((estado) => ({
+        estado,
+        info: obtener(estado),
+        pedidos: pedidos.filter((pedido) => pedido.estado === estado),
+      })),
+    [ordenTablero, pedidos, obtener],
   );
 
-  const visibleOrders = useMemo(() => {
-    if (filter === "todos") {
-      return orders;
-    }
+  const cerrados = useMemo(
+    () => pedidos.filter((pedido) => ESTADOS_CERRADOS.includes(pedido.estado)),
+    [pedidos],
+  );
 
-    if (filter === "activos") {
-      return orders.filter(
-        (order) => !["entregado", "cancelado"].includes(order.estado),
-      );
-    }
-
-    return orders.filter((order) => order.estado === filter);
-  }, [orders, filter]);
+  const enTablero = columnas.reduce(
+    (total, columna) => total + columna.pedidos.length,
+    0,
+  );
 
   return (
     <div className="admin-orders">
       <div className="admin-toolbar">
         <div>
-          <h2 className="admin-section-title">Pedidos</h2>
+          <h2 className="admin-section-title">Tablero de pedidos</h2>
+
           <p className="admin-section-text">
-            Cambia el estado y mantén informado al alumno.
+            Usa los botones de cada tarjeta para avanzar el pedido: recibido →
+            confirmado → preparando → listo → entregado.
           </p>
         </div>
 
-        <button
-          type="button"
-          className="mb-btn mb-btn-ghost"
-          onClick={() => {
-            setRefreshing(true);
-            loadOrders();
-          }}
-          disabled={refreshing}
-        >
-          <Icon name="refresh" size={18} className={refreshing ? "is-spinning" : ""} />
-          Actualizar
-        </button>
+        <div className="admin-toolbar-actions">
+          <span className={`live-pill ${conectado ? "is-on" : ""}`}>
+            <span className="live-dot" />
+            {conectado ? "En vivo" : "Reconectando…"}
+          </span>
+
+          <div className="mb-input-icon admin-search">
+            <Icon name="search" size={17} />
+
+            <input
+              type="search"
+              className="mb-input"
+              placeholder="Alumno, matrícula o código…"
+              value={busqueda}
+              onChange={(evento) => setBusqueda(evento.target.value)}
+            />
+          </div>
+
+          <button
+            type="button"
+            className="mb-btn mb-btn-ghost"
+            onClick={() => {
+              pedidosConsulta.refetch();
+              resumenConsulta.refetch();
+            }}
+            disabled={pedidosConsulta.isFetching}
+          >
+            <Icon
+              name="refresh"
+              size={18}
+              className={pedidosConsulta.isFetching ? "is-spinning" : ""}
+            />
+            Actualizar
+          </button>
+        </div>
       </div>
 
       <section className="admin-orders-kpis">
         <div className="mb-stat">
-          <span className="mb-stat-label">Pedidos totales</span>
-          <span className="mb-stat-value">{orders.length}</span>
+          <span className="mb-stat-label">En tablero</span>
+          <span className="mb-stat-value">
+            <AnimatedNumber value={resumen?.activos ?? enTablero} />
+          </span>
         </div>
 
         <div className="mb-stat">
-          <span className="mb-stat-label">En curso</span>
-          <span className="mb-stat-value">{activeOrders}</span>
+          <span className="mb-stat-label">Pedidos de hoy</span>
+          <span className="mb-stat-value">
+            <AnimatedNumber value={resumen?.pedidosHoy ?? 0} />
+          </span>
         </div>
 
         <div className="mb-stat">
-          <span className="mb-stat-label">Total vendido</span>
-          <span className="mb-stat-value">${totalSales.toFixed(2)}</span>
+          <span className="mb-stat-label">Vendido hoy</span>
+          <span className="mb-stat-value">
+            <AnimatedNumber
+              value={resumen?.vendidoHoy ?? 0}
+              decimals={2}
+              prefix="$"
+            />
+          </span>
+        </div>
+
+        <div className="mb-stat">
+          <span className="mb-stat-label">Preparación promedio</span>
+          <span className="mb-stat-value">
+            {resumen?.minutosPromedioPreparacion === null ||
+            resumen?.minutosPromedioPreparacion === undefined ? (
+              "—"
+            ) : (
+              <AnimatedNumber
+                value={resumen.minutosPromedioPreparacion}
+                suffix=" min"
+              />
+            )}
+          </span>
+        </div>
+
+        <div className="mb-stat">
+          <span className="mb-stat-label">Cancelados hoy</span>
+          <span className="mb-stat-value">
+            <AnimatedNumber value={resumen?.canceladosHoy ?? 0} />
+          </span>
         </div>
       </section>
 
-      <div className="admin-filters">
-        {filters.map((item) => (
-          <button
-            key={item.key}
-            type="button"
-            className={`mb-chip ${filter === item.key ? "is-active" : ""}`}
-            onClick={() => setFilter(item.key)}
-          >
-            {item.label}
-          </button>
-        ))}
-      </div>
-
-      {loading ? (
-        <SkeletonGrid
-          count={4}
-          image={false}
-          lines={3}
-          className="admin-orders-grid"
-        />
-      ) : visibleOrders.length === 0 ? (
-        <EmptyState
-          icon="receipt"
-          title="No hay pedidos en este filtro"
-          description="Cuando los alumnos generen pedidos aparecerán aquí."
-        />
+      {pedidosConsulta.isLoading ? (
+        <SkeletonGrid count={4} image={false} lines={3} className="board" />
       ) : (
-        <div className="admin-orders-grid">
-          {visibleOrders.map((order, index) => (
-            <article
-              key={order.id}
-              className="admin-order mb-reveal"
-              style={{ "--i": index }}
+        <div className="board">
+          {columnas.map((columna) => (
+            <section
+              key={columna.estado}
+              className={`board-column tone-${columna.info.tono}`}
             >
-              <header className="admin-order-head">
-                <div>
-                  <span className="admin-order-number">Pedido #{order.id}</span>
-                  <h3>{order.cliente}</h3>
-                </div>
+              <header className="board-column-head">
+                <span className="board-column-title">
+                  <Icon name={columna.info.icono} size={15} />
+                  {columna.info.etiqueta}
+                </span>
 
-                <span
-                  className={`mb-badge ${statusTones[order.estado] || "neutral"}`}
-                >
-                  {statusLabels[order.estado] || order.estado}
+                <span className="board-column-count">
+                  {columna.pedidos.length}
                 </span>
               </header>
 
-              <dl className="admin-order-meta">
-                <div>
-                  <dt>Matrícula</dt>
-                  <dd>{order.matricula}</dd>
-                </div>
+              <p className="board-column-hint">{columna.info.descripcion}</p>
 
-                <div>
-                  <dt>Total</dt>
-                  <dd>${Number(order.total).toFixed(2)}</dd>
-                </div>
-
-                <div>
-                  <dt>Pago</dt>
-                  <dd className="is-capital">{formatPaymentMethod(order)}</dd>
-                </div>
-
-                <div>
-                  <dt>Creado</dt>
-                  <dd>{formatDate(order.creado_en)}</dd>
-                </div>
-              </dl>
-
-              <div className="admin-order-code">
-                <Icon name="qr" size={16} />
-                {order.codigo_qr}
-              </div>
-
-              <label className="mb-field admin-order-status">
-                <span>Cambiar estado</span>
-
-                <select
-                  className="mb-select"
-                  value={order.estado}
-                  disabled={updatingId === order.id}
-                  onChange={(e) => handleStatusChange(order, e.target.value)}
-                >
-                  {statusTransitions[order.estado].map((status) => (
-                    <option key={status} value={status}>
-                      {statusLabels[status]}
-                    </option>
+              <motion.div
+                className="board-column-list"
+                variants={listaVariants}
+                initial="initial"
+                animate="animate"
+              >
+                <AnimatePresence mode="popLayout">
+                  {columna.pedidos.map((pedido) => (
+                    <OrderCard
+                      key={pedido.id}
+                      pedido={pedido}
+                      actualizando={
+                        mutacion.isPending &&
+                        mutacion.variables?.pedido?.id === pedido.id
+                      }
+                      onAccion={manejarAccion}
+                      onVerDetalle={(item) => setDetalleId(item.id)}
+                    />
                   ))}
-                </select>
-              </label>
-            </article>
+                </AnimatePresence>
+
+                {columna.pedidos.length === 0 && (
+                  <p className="board-column-empty">Sin pedidos aquí</p>
+                )}
+              </motion.div>
+            </section>
           ))}
         </div>
       )}
+
+      {enTablero === 0 && !pedidosConsulta.isLoading && (
+        <EmptyState
+          icon="receipt"
+          title="No hay pedidos en curso"
+          description="Cuando un alumno haga un pedido aparecerá aquí al instante."
+        />
+      )}
+
+      <section className="board-closed">
+        <button
+          type="button"
+          className="board-closed-toggle"
+          onClick={() => setVerCerrados((previo) => !previo)}
+          aria-expanded={verCerrados}
+        >
+          <Icon name={verCerrados ? "chevronDown" : "chevronRight"} size={16} />
+          Pedidos cerrados ({cerrados.length})
+        </button>
+
+        <AnimatePresence initial={false}>
+          {verCerrados && (
+            <motion.ul
+              className="board-closed-list"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.26 }}
+            >
+              {cerrados.map((pedido) => (
+                <li key={pedido.id}>
+                  <span className="board-closed-id">#{pedido.id}</span>
+
+                  <span className="board-closed-name">{pedido.cliente}</span>
+
+                  <StatusBadge estado={pedido.estado} animar={false} />
+
+                  <span className="board-closed-total">
+                    ${Number(pedido.total).toFixed(2)}
+                  </span>
+
+                  <button
+                    type="button"
+                    className="mb-btn mb-btn-ghost mb-btn-sm"
+                    onClick={() => setDetalleId(pedido.id)}
+                  >
+                    <Icon name="eye" size={15} />
+                    Ver
+                  </button>
+                </li>
+              ))}
+
+              {cerrados.length === 0 && (
+                <li className="board-closed-empty">
+                  Todavía no hay pedidos cerrados.
+                </li>
+              )}
+            </motion.ul>
+          )}
+        </AnimatePresence>
+      </section>
+
+      <OrderDetailDrawer
+        pedidoId={detalleId}
+        onCerrar={() => setDetalleId(null)}
+      />
+
+      <StatusReasonDialog
+        accion={accionPendiente?.accion}
+        pedido={accionPendiente?.pedido}
+        guardando={mutacion.isPending}
+        onCerrar={() => setAccionPendiente(null)}
+        onConfirmar={(datos) => {
+          mutacion.mutate(
+            {
+              pedido: accionPendiente.pedido,
+              accion: accionPendiente.accion,
+              datos,
+            },
+            {
+              onSuccess: () => setAccionPendiente(null),
+            },
+          );
+        }}
+      />
     </div>
   );
 }

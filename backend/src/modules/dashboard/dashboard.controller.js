@@ -77,8 +77,64 @@ const getTodaySales = async (
 
     }
 };
+const getSalesByDay = async (
+    req,
+    res
+) => {
+
+    try {
+
+        const serie =
+            await dashboardService.getSalesByDay(
+                req.query.dias
+            );
+
+        res.json({
+            success: true,
+            data: serie
+        });
+
+    } catch (error) {
+
+        console.error(error);
+
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+
+    }
+};
+const getOrdersByHour = async (
+    req,
+    res
+) => {
+
+    try {
+
+        const distribucion =
+            await dashboardService.getOrdersByHour();
+
+        res.json({
+            success: true,
+            data: distribucion
+        });
+
+    } catch (error) {
+
+        console.error(error);
+
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+
+    }
+};
 module.exports = {
     getSummary,
     getTopProducts,
-    getTodaySales
+    getTodaySales,
+    getSalesByDay,
+    getOrdersByHour
 };

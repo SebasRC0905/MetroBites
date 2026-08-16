@@ -1,12 +1,16 @@
 import { useState } from "react";
-import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
+import { AnimatePresence, motion } from "framer-motion";
 
 import Icon from "../components/Icon";
 import Logo from "../components/Logo";
+import AnimatedOutlet from "../components/AnimatedOutlet";
 
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 import { useFavorites } from "../context/FavoritesContext";
+
+import { resorte } from "../lib/motion";
 
 import "./MainLayout.css";
 
@@ -19,13 +23,30 @@ const navItems = [
   { to: "/cart", label: "Mi carrito", icon: "cart" },
 ];
 
+/** Contador que salta cada vez que cambia su valor. */
+function ContadorNav({ valor, suave = false }) {
+  return (
+    <AnimatePresence mode="popLayout">
+      <motion.span
+        key={valor}
+        className={`app-nav-count ${suave ? "is-soft" : ""}`}
+        initial={{ scale: 0.4, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.4, opacity: 0 }}
+        transition={resorte}
+      >
+        {valor}
+      </motion.span>
+    </AnimatePresence>
+  );
+}
+
 function MainLayout() {
   const { user, logout } = useAuth();
-  const { items } = useCart();
+  const { totalUnidades } = useCart();
   const { favorites } = useFavorites();
 
   const navigate = useNavigate();
-  const location = useLocation();
 
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -55,13 +76,18 @@ function MainLayout() {
         </button>
       </header>
 
-      {menuOpen && (
-        <div
-          className="app-scrim"
-          role="presentation"
-          onClick={closeMenu}
-        />
-      )}
+      <AnimatePresence>
+        {menuOpen && (
+          <motion.div
+            className="app-scrim"
+            role="presentation"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={closeMenu}
+          />
+        )}
+      </AnimatePresence>
 
       <aside className={`app-sidebar ${menuOpen ? "is-open" : ""}`}>
         <div className="app-sidebar-brand">
@@ -87,12 +113,12 @@ function MainLayout() {
 
               <span className="app-nav-text">{item.label}</span>
 
-              {item.to === "/cart" && items.length > 0 && (
-                <span className="app-nav-count">{items.length}</span>
+              {item.to === "/cart" && totalUnidades > 0 && (
+                <ContadorNav valor={totalUnidades} />
               )}
 
               {item.to === "/favoritos" && favorites.length > 0 && (
-                <span className="app-nav-count is-soft">{favorites.length}</span>
+                <ContadorNav valor={favorites.length} suave />
               )}
             </NavLink>
           ))}
@@ -116,9 +142,7 @@ function MainLayout() {
       </aside>
 
       <main className="app-main">
-        <div key={location.pathname} className="app-page mb-page-transition">
-          <Outlet />
-        </div>
+        <AnimatedOutlet className="app-page" />
       </main>
     </div>
   );

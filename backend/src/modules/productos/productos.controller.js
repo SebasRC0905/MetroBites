@@ -45,10 +45,18 @@ const getProduct = async (
 
         }
 
+        /*
+         Las personalizaciones viajan dentro de `data` (que es como las
+         consume la app). El campo suelto se mantiene por compatibilidad
+         con las llamadas viejas.
+        */
         res.json({
             success: true,
-            data:
-                resultado.producto,
+            data: {
+                ...resultado.producto,
+                personalizaciones:
+                    resultado.personalizaciones
+            },
             personalizaciones:
                 resultado.personalizaciones
         });

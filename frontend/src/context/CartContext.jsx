@@ -1,4 +1,11 @@
-import { createContext, useContext, useEffect, useRef, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useReducer,
+  useRef,
+} from "react";
 
 import { useAuth } from "./AuthContext";
 
@@ -10,7 +17,18 @@ const loadStoredCart = () => {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
 
-    return raw ? JSON.parse(raw) : [];
+    const guardado = raw ? JSON.parse(raw) : [];
+
+    /*
+     Los carritos guardados por versiones anteriores no tenían `uid`
+     ni `notas`; se completan al cargarlos para que el resto del código
+     pueda asumir que siempre existen.
+    */
+    return guardado.map((item, indice) => ({
+      notas: "",
+      ...item,
+      uid: item.uid || `legado-${indice}-${item.producto_id}`,
+    }));
   } catch (error) {
     console.error(error);
 
@@ -18,10 +36,111 @@ const loadStoredCart = () => {
   }
 };
 
+/** Precio de una unidad ya con sus personalizaciones. */
+const precioUnitario = (item) =>
+  Number(item.precio_base) +
+  (item.personalizaciones || []).reduce(
+    (acumulado, extra) => acumulado + Number(extra.precio_adicional || 0),
+    0,
+  );
+
+const conSubtotal = (item) => ({
+  ...item,
+  precio_unitario: precioUnitario(item),
+  subtotal: precioUnitario(item) * item.cantidad,
+});
+
+/**
+ * Huella de una línea del carrito: mismo producto, mismas
+ * personalizaciones y misma nota. Sirve para sumar cantidades en vez
+ * de llenar el carrito de líneas repetidas.
+ */
+const huella = (item) => {
+  const opciones = (item.personalizaciones || [])
+    .map((extra) => extra.id)
+    .sort((a, b) => a - b)
+    .join("-");
+
+  return `${item.producto_id}|${opciones}|${(item.notas || "").trim().toLowerCase()}`;
+};
+
+const MAXIMO_POR_LINEA = 20;
+
+/**
+ * Toda la lógica del carrito vive en este reducer: las pantallas solo
+ * despachan intenciones ("agrega esto", "sube uno") y aquí se decide
+ * cómo queda el estado. Antes esta lógica estaba repartida en varias
+ * funciones que recalculaban el subtotal cada una por su cuenta.
+ */
+const carritoReducer = (estado, accion) => {
+  switch (accion.tipo) {
+    case "agregar": {
+      const nuevo = conSubtotal(accion.item);
+
+      const huellaNueva = huella(nuevo);
+
+      const existente = estado.find(
+        (item) => huella(item) === huellaNueva,
+      );
+
+      if (existente) {
+        return estado.map((item) =>
+          item.uid === existente.uid
+            ? conSubtotal({
+                ...item,
+                cantidad: Math.min(
+                  item.cantidad + nuevo.cantidad,
+                  MAXIMO_POR_LINEA,
+                ),
+              })
+            : item,
+        );
+      }
+
+      return [...estado, nuevo];
+    }
+
+    case "cantidad": {
+      return estado.map((item) =>
+        item.uid === accion.uid
+          ? conSubtotal({
+              ...item,
+              cantidad: Math.min(
+                Math.max(1, item.cantidad + accion.delta),
+                MAXIMO_POR_LINEA,
+              ),
+            })
+          : item,
+      );
+    }
+
+    case "actualizar": {
+      return estado.map((item) =>
+        item.uid === accion.uid
+          ? conSubtotal({ ...item, ...accion.cambios })
+          : item,
+      );
+    }
+
+    case "eliminar":
+      return estado.filter((item) => item.uid !== accion.uid);
+
+    case "vaciar":
+      return [];
+
+    default:
+      return estado;
+  }
+};
+
 export const CartProvider = ({ children }) => {
   const { user } = useAuth();
 
-  const [items, setItems] = useState(loadStoredCart);
+  const [items, despachar] = useReducer(
+    carritoReducer,
+    undefined,
+    loadStoredCart,
+  );
 
   const previousUserId = useRef(user?.id ?? null);
 
@@ -40,123 +159,80 @@ export const CartProvider = ({ children }) => {
    pedidos de una cuenta a otra en equipos compartidos.
   */
   useEffect(() => {
-    const syncCartWithSession = () => {
-      const currentUserId = user?.id ?? null;
+    const currentUserId = user?.id ?? null;
 
-      if (previousUserId.current === currentUserId) {
-        return;
-      }
+    if (previousUserId.current === currentUserId) {
+      return;
+    }
 
-      previousUserId.current = currentUserId;
+    previousUserId.current = currentUserId;
 
-      if (currentUserId === null) {
-        setItems([]);
-      }
-    };
-
-    syncCartWithSession();
+    if (currentUserId === null) {
+      despachar({ tipo: "vaciar" });
+    }
   }, [user]);
 
-  const addItem = (product, quantity = 1, personalizaciones = []) => {
-    const extrasTotal = personalizaciones.reduce(
-      (acc, item) => acc + Number(item.precio_adicional),
+  const valor = useMemo(() => {
+    const total = items.reduce((acumulado, item) => acumulado + item.subtotal, 0);
+
+    const totalUnidades = items.reduce(
+      (acumulado, item) => acumulado + item.cantidad,
       0,
     );
 
-    const subtotal = (Number(product.precio_base) + extrasTotal) * quantity;
+    return {
+      items,
 
-    const newItem = {
-      producto_id: product.id,
+      total,
 
-      nombre: product.nombre,
+      totalUnidades,
 
-      precio_base: Number(product.precio_base),
+      /**
+       * @param {object} producto     Producto del menú.
+       * @param {object} opciones     { cantidad, personalizaciones, notas }
+       */
+      addItem: (producto, opciones = {}) => {
+        const {
+          cantidad = 1,
+          personalizaciones = [],
+          notas = "",
+        } = opciones;
 
-      url_imagen: product.url_imagen,
+        despachar({
+          tipo: "agregar",
+          item: {
+            uid: `${producto.id}-${Date.now()}-${Math.random()
+              .toString(36)
+              .slice(2, 7)}`,
+            producto_id: producto.id,
+            nombre: producto.nombre,
+            precio_base: Number(producto.precio_base),
+            url_imagen: producto.url_imagen,
+            categoria: producto.categoria,
+            cantidad,
+            personalizaciones,
+            notas: notas.trim(),
+          },
+        });
+      },
 
-      cantidad: quantity,
+      increaseQuantity: (uid) =>
+        despachar({ tipo: "cantidad", uid, delta: 1 }),
 
-      personalizaciones,
+      decreaseQuantity: (uid) =>
+        despachar({ tipo: "cantidad", uid, delta: -1 }),
 
-      subtotal,
+      updateItem: (uid, cambios) =>
+        despachar({ tipo: "actualizar", uid, cambios }),
+
+      removeItem: (uid) => despachar({ tipo: "eliminar", uid }),
+
+      clearCart: () => despachar({ tipo: "vaciar" }),
     };
-
-    setItems((prev) => [...prev, newItem]);
-  };
-  const increaseQuantity = (index) => {
-    setItems((prev) =>
-      prev.map((item, i) => {
-        if (i !== index) {
-          return item;
-        }
-
-        const extrasTotal = item.personalizaciones.reduce(
-          (acc, extra) => acc + Number(extra.precio_adicional),
-          0,
-        );
-
-        const nuevaCantidad = item.cantidad + 1;
-
-        return {
-          ...item,
-
-          cantidad: nuevaCantidad,
-
-          subtotal: (item.precio_base + extrasTotal) * nuevaCantidad,
-        };
-      }),
-    );
-  };
-
-  const decreaseQuantity = (index) => {
-    setItems((prev) =>
-      prev.map((item, i) => {
-        if (i !== index) {
-          return item;
-        }
-
-        const extrasTotal = item.personalizaciones.reduce(
-          (acc, extra) => acc + Number(extra.precio_adicional),
-          0,
-        );
-
-        const nuevaCantidad = Math.max(1, item.cantidad - 1);
-
-        return {
-          ...item,
-
-          cantidad: nuevaCantidad,
-
-          subtotal: (item.precio_base + extrasTotal) * nuevaCantidad,
-        };
-      }),
-    );
-  };
-
-  const removeItem = (index) => {
-    setItems((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const clearCart = () => {
-    setItems([]);
-  };
-
-  const total = items.reduce((acc, item) => acc + item.subtotal, 0);
+  }, [items]);
 
   return (
-    <CartContext.Provider
-      value={{
-        items,
-        total,
-        addItem,
-        removeItem,
-        increaseQuantity,
-        decreaseQuantity,
-        clearCart,
-      }}
-    >
-      {children}
-    </CartContext.Provider>
+    <CartContext.Provider value={valor}>{children}</CartContext.Provider>
   );
 };
 

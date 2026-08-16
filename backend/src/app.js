@@ -13,6 +13,9 @@ const uploadsRoutes = require('../uploads/uploads.routes');
 const cuponesRoutes = require('./modules/cupones/cupones.routes');
 const climaRoutes = require('./modules/clima/clima.routes');
 const metodosPagoRoutes = require('./modules/metodosPago/metodosPago.routes');
+const nutricionRoutes = require('./modules/nutricion/nutricion.routes');
+const divisasRoutes = require('./modules/divisas/divisas.routes');
+const festivosRoutes = require('./modules/festivos/festivos.routes');
 const app = express();
 
 app.use(cors());
@@ -74,5 +77,22 @@ app.use(
 app.use(
     '/api/metodos-pago',
     metodosPagoRoutes
+);
+/*
+ Integraciones con APIs públicas externas: información nutrimental
+ (Open Food Facts), tipo de cambio (Frankfurter) y días festivos
+ oficiales de México (Nager.Date).
+*/
+app.use(
+    '/api/nutricion',
+    nutricionRoutes
+);
+app.use(
+    '/api/divisas',
+    divisasRoutes
+);
+app.use(
+    '/api/festivos',
+    festivosRoutes
 );
 module.exports = app;

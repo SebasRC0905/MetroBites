@@ -1,0 +1,375 @@
+/* ============================================================
+   Hoja de personalización del producto
+   Modal centrado en escritorio, hoja inferior en móvil.
+   ============================================================ */
+
+.sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(20, 12, 40, 0.52);
+  backdrop-filter: blur(6px);
+}
+
+.sheet {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(560px, 100%);
+  max-height: min(88vh, 780px);
+  overflow: hidden;
+  background: var(--surface);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-lg);
+}
+
+.sheet-grabber {
+  display: none;
+}
+
+.sheet-loading {
+  display: grid;
+  gap: 14px;
+  padding: 26px;
+}
+
+/* --- Encabezado --- */
+
+.sheet-head {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 14px;
+  align-items: start;
+  padding: 22px 22px 16px;
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(180deg, var(--violet-50), transparent);
+}
+
+.sheet-media {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  overflow: hidden;
+  color: var(--violet-600);
+  background: var(--surface-muted);
+  border-radius: var(--r-md);
+}
+
+.sheet-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sheet-headings {
+  display: grid;
+  gap: 6px;
+  justify-items: start;
+  min-width: 0;
+}
+
+.sheet-headings h2 {
+  font-size: 21px;
+}
+
+.sheet-headings p {
+  font-size: 13px;
+  color: var(--muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.sheet-close {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  color: var(--ink-soft);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  transition: color var(--dur-fast) var(--ease),
+    background var(--dur-fast) var(--ease);
+}
+
+.sheet-close:hover {
+  color: var(--danger);
+  background: var(--danger-soft);
+}
+
+/* --- Cuerpo con los grupos --- */
+
+.sheet-body {
+  display: grid;
+  gap: 18px;
+  padding: 20px 22px;
+  overflow-y: auto;
+}
+
+.sheet-sin-opciones {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 14px 16px;
+  font-size: 13.5px;
+  color: var(--emerald-700);
+  background: var(--mint-soft);
+  border-radius: var(--r-sm);
+}
+
+.sheet-group {
+  border: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.sheet-group legend {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 4px;
+}
+
+.sheet-group-title {
+  display: inline-flex;
+  gap: 7px;
+  align-items: center;
+  font-family: var(--font-display);
+  font-size: 14.5px;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.sheet-group-rule {
+  padding: 3px 9px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+  background: var(--surface-muted);
+  border-radius: var(--r-pill);
+}
+
+.sheet-group-rule.is-required {
+  color: var(--coral-700);
+  background: var(--coral-50);
+}
+
+.sheet-options {
+  display: grid;
+  gap: 8px;
+}
+
+.sheet-option {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+  padding: 12px 14px;
+  text-align: left;
+  background: var(--surface-sunken);
+  border: 1.5px solid var(--line);
+  border-radius: var(--r-sm);
+  transition: border-color var(--dur-fast) var(--ease),
+    background var(--dur-fast) var(--ease);
+}
+
+.sheet-option:hover:not(:disabled) {
+  border-color: var(--violet-200);
+  background: var(--violet-50);
+}
+
+.sheet-option:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.sheet-option.is-active {
+  border-color: var(--violet-500);
+  background: var(--violet-50);
+}
+
+.sheet-option-mark {
+  display: grid;
+  place-items: center;
+  width: 21px;
+  height: 21px;
+  color: #ffffff;
+  background: var(--surface);
+  border: 1.5px solid var(--line-strong);
+  border-radius: 7px;
+  transition: background var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease);
+}
+
+.sheet-option-mark.is-round {
+  border-radius: var(--r-pill);
+}
+
+.sheet-option.is-active .sheet-option-mark {
+  background: var(--violet-600);
+  border-color: var(--violet-600);
+}
+
+.sheet-option-text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.sheet-option-text strong {
+  font-size: 14px;
+  font-weight: 650;
+  color: var(--ink);
+}
+
+.sheet-option-text small {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.sheet-option-price {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.sheet-option.is-active .sheet-option-price {
+  color: var(--violet-700);
+}
+
+/* --- Notas para la cocina --- */
+
+.sheet-notes {
+  display: grid;
+  gap: 8px;
+  position: relative;
+}
+
+.sheet-notes-count {
+  justify-self: end;
+  font-size: 11px;
+  color: var(--muted-soft);
+}
+
+/* --- Pie con cantidad y total --- */
+
+.sheet-foot {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 14px;
+  align-items: center;
+  padding: 16px 22px;
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+  box-shadow: 0 -10px 26px rgba(35, 18, 74, 0.06);
+}
+
+.sheet-qty {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  padding: 5px;
+  background: var(--surface-muted);
+  border-radius: var(--r-pill);
+}
+
+.sheet-qty button {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  color: var(--violet-700);
+  background: var(--surface);
+  border-radius: var(--r-pill);
+  box-shadow: var(--shadow-xs);
+}
+
+.sheet-qty button:disabled {
+  color: var(--muted-soft);
+}
+
+.sheet-qty strong {
+  min-width: 26px;
+  font-size: 15px;
+  text-align: center;
+}
+
+.sheet-total {
+  display: grid;
+  gap: 1px;
+}
+
+.sheet-total span {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.sheet-total strong {
+  font-family: var(--font-display);
+  font-size: 20px;
+  color: var(--violet-800);
+}
+
+.sheet-total small {
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+.sheet-add {
+  white-space: nowrap;
+}
+
+/* --- Móvil: hoja pegada al borde inferior --- */
+
+@media (max-width: 640px) {
+  .sheet-backdrop {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .sheet {
+    width: 100%;
+    max-height: 92vh;
+    border-radius: var(--r-xl) var(--r-xl) 0 0;
+  }
+
+  .sheet-grabber {
+    display: block;
+    width: 44px;
+    height: 4px;
+    margin: 10px auto 0;
+    background: var(--line-strong);
+    border-radius: var(--r-pill);
+  }
+
+  .sheet-head {
+    padding-top: 14px;
+  }
+
+  .sheet-foot {
+    grid-template-columns: auto 1fr;
+    row-gap: 12px;
+    padding-bottom: calc(16px + env(safe-area-inset-bottom));
+  }
+
+  .sheet-add {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+}

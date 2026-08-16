@@ -148,9 +148,19 @@
 
 .dashboard-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 16px;
   margin-bottom: 20px;
+}
+
+/* Gráfica de ingresos a todo lo ancho */
+.dashboard-chart {
+  margin-bottom: 20px;
+}
+
+/* Recharts hereda la tipografía de la app en vez de la del navegador. */
+.dashboard-panel .recharts-wrapper text {
+  font-family: var(--font-main);
 }
 
 .dashboard-panel {

@@ -1,8 +1,10 @@
 import { useState } from "react";
-import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { AnimatePresence, motion } from "framer-motion";
 
 import Icon from "../../components/Icon";
 import Logo from "../../components/Logo";
+import AnimatedOutlet from "../../components/AnimatedOutlet";
 
 import { useAuth } from "../../context/AuthContext";
 
@@ -58,13 +60,18 @@ function AdminLayout() {
         </button>
       </header>
 
-      {menuOpen && (
-        <div
-          className="admin-scrim"
-          role="presentation"
-          onClick={closeMenu}
-        />
-      )}
+      <AnimatePresence>
+        {menuOpen && (
+          <motion.div
+            className="admin-scrim"
+            role="presentation"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={closeMenu}
+          />
+        )}
+      </AnimatePresence>
 
       <aside className={`admin-sidebar ${menuOpen ? "is-open" : ""}`}>
         <div className="admin-brand">
@@ -132,9 +139,7 @@ function AdminLayout() {
           </div>
         </header>
 
-        <main key={location.pathname} className="admin-content mb-page-transition">
-          <Outlet />
-        </main>
+        <AnimatedOutlet className="admin-content" />
       </div>
     </div>
   );

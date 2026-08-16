@@ -1,17 +1,35 @@
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { AnimatePresence, motion } from "framer-motion";
 import toast from "react-hot-toast";
 
-import productService from "../../services/productService";
-
 import Icon from "../../components/Icon";
+import AnimatedNumber from "../../components/AnimatedNumber";
+import NutritionPanel from "../../components/NutritionPanel";
 import { SkeletonLine } from "../../components/Skeleton";
+
+import { useProducto } from "../../hooks/useProducts";
+import useCustomizer from "../../hooks/useCustomizer";
 
 import { useCart } from "../../context/CartContext";
 import { useFavorites } from "../../context/FavoritesContext";
+import { useCurrency } from "../../context/CurrencyContext";
+
+import { itemVariants, listaVariants, resorte } from "../../lib/motion";
+
 import "./ProductDetail.css";
 
 const API_URL = "http://localhost:3000";
+
+const MAXIMO_NOTAS = 140;
+
+const textoReglaGrupo = (grupo) => {
+  if (grupo.tipo === "unica") {
+    return grupo.minimo > 0 ? "Elige 1 · obligatorio" : "Elige 1";
+  }
+
+  return grupo.maximo ? `Hasta ${grupo.maximo}` : "Los que quieras";
+};
 
 function ProductDetail() {
   const { id } = useParams();
@@ -19,76 +37,46 @@ function ProductDetail() {
   const navigate = useNavigate();
 
   const { addItem } = useCart();
-
   const { isFavorite, toggleFavorite } = useFavorites();
+  const { equivalente } = useCurrency();
 
-  const [product, setProduct] = useState(null);
+  const { data: product, isLoading } = useProducto(id);
 
-  const [personalizaciones, setPersonalizaciones] = useState([]);
-
-  const [selectedOptions, setSelectedOptions] = useState([]);
+  const {
+    grupos,
+    alternar,
+    estaSeleccionada,
+    grupoLleno,
+    opcionesElegidas,
+    extrasTotal,
+    grupoPendiente,
+    esValida,
+  } = useCustomizer(product?.personalizaciones || []);
 
   const [quantity, setQuantity] = useState(1);
-
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const loadProduct = async () => {
-      try {
-        setLoading(true);
-
-        const response = await productService.getProductDetail(id);
-
-        setProduct(response.data);
-
-        setPersonalizaciones(response.data?.personalizaciones || []);
-      } catch (error) {
-        console.error(error);
-
-        toast.error("No pudimos cargar el producto");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadProduct();
-  }, [id]);
-
-  const groups = useMemo(() => {
-    return personalizaciones.reduce((acc, item) => {
-      const key = item.nombre_grupo || "Extras";
-
-      if (!acc[key]) {
-        acc[key] = [];
-      }
-
-      acc[key].push(item);
-
-      return acc;
-    }, {});
-  }, [personalizaciones]);
-
-  const extrasTotal = selectedOptions.reduce(
-    (acc, item) => acc + Number(item.precio_adicional),
-    0,
-  );
+  const [notas, setNotas] = useState("");
 
   const liveTotal = product
     ? (Number(product.precio_base) + extrasTotal) * quantity
     : 0;
 
-  const handleOptionChange = (option) => {
-    const exists = selectedOptions.some((item) => item.id === option.id);
-
-    if (exists) {
-      setSelectedOptions((prev) => prev.filter((item) => item.id !== option.id));
-    } else {
-      setSelectedOptions((prev) => [...prev, option]);
-    }
-  };
-
   const handleAddToCart = () => {
-    addItem(product, quantity, selectedOptions);
+    if (!esValida) {
+      toast.error(`Elige una opción de "${grupoPendiente.nombre}"`);
+
+      return;
+    }
+
+    addItem(product, {
+      cantidad: quantity,
+      personalizaciones: opcionesElegidas.map((opcion) => ({
+        id: opcion.id,
+        nombre: opcion.nombre,
+        precio_adicional: Number(opcion.precio_adicional),
+        nombre_grupo: opcion.nombre_grupo,
+      })),
+      notas,
+    });
 
     toast.success(`${product.nombre} agregado al carrito`);
 
@@ -105,7 +93,7 @@ function ProductDetail() {
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="detail">
         <SkeletonLine width={140} height={40} radius={999} />
@@ -152,7 +140,12 @@ function ProductDetail() {
       </button>
 
       <div className="detail-hero">
-        <figure className="detail-media">
+        <motion.figure
+          className="detail-media"
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.45 }}
+        >
           {product.url_imagen ? (
             <img src={`${API_URL}${product.url_imagen}`} alt={product.nombre} />
           ) : (
@@ -160,7 +153,7 @@ function ProductDetail() {
               <Icon name="image" size={38} />
             </span>
           )}
-        </figure>
+        </motion.figure>
 
         <div className="detail-info">
           <div className="detail-info-top">
@@ -179,7 +172,7 @@ function ProductDetail() {
           <div className="detail-title-row">
             <h1>{product.nombre}</h1>
 
-            <button
+            <motion.button
               type="button"
               className={`detail-favorite ${isFavorite(product.id) ? "is-active" : ""}`}
               aria-pressed={isFavorite(product.id)}
@@ -189,13 +182,18 @@ function ProductDetail() {
                   : "Agregar a favoritos"
               }
               onClick={handleToggleFavorite}
+              whileTap={{ scale: 0.85 }}
+              animate={
+                isFavorite(product.id) ? { scale: [1, 1.22, 1] } : { scale: 1 }
+              }
+              transition={{ duration: 0.32 }}
             >
               <Icon
                 name="heart"
                 size={19}
                 fill={isFavorite(product.id) ? "currentColor" : "none"}
               />
-            </button>
+            </motion.button>
           </div>
 
           <p className="detail-description">
@@ -206,59 +204,129 @@ function ProductDetail() {
           <div className="detail-price">
             <span>Precio base</span>
             <strong>${Number(product.precio_base).toFixed(2)}</strong>
+
+            {equivalente(product.precio_base) && (
+              <small>{equivalente(product.precio_base)}</small>
+            )}
           </div>
         </div>
       </div>
 
-      {personalizaciones.length > 0 && (
+      {grupos.length > 0 && (
         <section className="detail-options">
           <div className="mb-section-head">
             <h2>Personaliza tu pedido</h2>
-            <span>{personalizaciones.length} opciones</span>
+            <span>
+              {grupos.length} {grupos.length === 1 ? "grupo" : "grupos"} de
+              opciones
+            </span>
           </div>
 
-          <div className="detail-groups">
-            {Object.entries(groups).map(([groupName, options], groupIndex) => (
-              <div
-                key={groupName}
-                className="detail-group mb-reveal"
-                style={{ "--i": groupIndex }}
+          <motion.div
+            className="detail-groups"
+            variants={listaVariants}
+            initial="initial"
+            animate="animate"
+          >
+            {grupos.map((grupo) => (
+              <motion.fieldset
+                key={grupo.nombre}
+                className="detail-group"
+                variants={itemVariants}
               >
-                <h3>
-                  <Icon name="tag" size={16} />
-                  {groupName}
-                </h3>
+                <legend>
+                  <span className="detail-group-name">
+                    <Icon name="tag" size={16} />
+                    {grupo.nombre}
+                  </span>
+
+                  <span
+                    className={`detail-group-rule ${
+                      grupo.minimo > 0 ? "is-required" : ""
+                    }`}
+                  >
+                    {textoReglaGrupo(grupo)}
+                  </span>
+                </legend>
 
                 <div className="detail-group-list">
-                  {options.map((item) => (
-                    <label key={item.id} className="mb-option violet">
-                      <input
-                        type="checkbox"
-                        checked={selectedOptions.some(
-                          (option) => option.id === item.id,
-                        )}
-                        onChange={() => handleOptionChange(item)}
-                      />
+                  {grupo.opciones.map((item) => {
+                    const activa = estaSeleccionada(grupo, item);
 
-                      <span className="mb-option-mark square" />
+                    const bloqueada =
+                      !activa && grupo.tipo === "multiple" && grupoLleno(grupo);
 
-                      <span className="mb-option-body">
-                        <strong>{item.nombre}</strong>
-                      </span>
+                    return (
+                      <motion.button
+                        key={item.id}
+                        type="button"
+                        className={`detail-option ${activa ? "is-active" : ""}`}
+                        disabled={bloqueada}
+                        onClick={() => alternar(grupo, item)}
+                        whileTap={{ scale: 0.98 }}
+                        transition={resorte}
+                      >
+                        <span
+                          className={`detail-option-mark ${
+                            grupo.tipo === "unica" ? "is-round" : ""
+                          }`}
+                        >
+                          <AnimatePresence>
+                            {activa && (
+                              <motion.span
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                exit={{ scale: 0 }}
+                                transition={resorte}
+                              >
+                                <Icon name="check" size={12} strokeWidth={3} />
+                              </motion.span>
+                            )}
+                          </AnimatePresence>
+                        </span>
 
-                      <span className="detail-option-price">
-                        {Number(item.precio_adicional) > 0
-                          ? `+$${Number(item.precio_adicional).toFixed(2)}`
-                          : "Incluido"}
-                      </span>
-                    </label>
-                  ))}
+                        <span className="detail-option-body">
+                          <strong>{item.nombre}</strong>
+
+                          {item.descripcion && <small>{item.descripcion}</small>}
+                        </span>
+
+                        <span className="detail-option-price">
+                          {Number(item.precio_adicional) > 0
+                            ? `+$${Number(item.precio_adicional).toFixed(2)}`
+                            : "Incluido"}
+                        </span>
+                      </motion.button>
+                    );
+                  })}
                 </div>
-              </div>
+              </motion.fieldset>
             ))}
-          </div>
+          </motion.div>
+
+          <label className="detail-notes">
+            <span className="detail-group-name">
+              <Icon name="edit" size={16} />
+              Instrucciones para la cocina
+            </span>
+
+            <textarea
+              className="mb-textarea"
+              rows={2}
+              maxLength={MAXIMO_NOTAS}
+              placeholder="Ej. sin cebolla, poca sal, salsa aparte…"
+              value={notas}
+              onChange={(evento) => setNotas(evento.target.value)}
+            />
+
+            <small>
+              {notas.length}/{MAXIMO_NOTAS}
+            </small>
+          </label>
         </section>
       )}
+
+      <NutritionPanel productoId={product.id} />
 
       <div className="detail-actionbar">
         <div className="detail-qty">
@@ -274,13 +342,23 @@ function ProductDetail() {
               <Icon name="minus" size={17} strokeWidth={2.4} />
             </button>
 
-            <strong>{quantity}</strong>
+            <AnimatePresence mode="popLayout">
+              <motion.strong
+                key={quantity}
+                initial={{ y: -12, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: 12, opacity: 0 }}
+                transition={resorte}
+              >
+                {quantity}
+              </motion.strong>
+            </AnimatePresence>
 
             <button
               type="button"
               className="qty-btn"
               aria-label="Agregar uno"
-              onClick={() => setQuantity((prev) => prev + 1)}
+              onClick={() => setQuantity((prev) => Math.min(20, prev + 1))}
             >
               <Icon name="plus" size={17} strokeWidth={2.4} />
             </button>
@@ -289,18 +367,32 @@ function ProductDetail() {
 
         <div className="detail-total">
           <span className="mb-stat-label">Total</span>
-          <strong>${liveTotal.toFixed(2)}</strong>
+
+          <strong>
+            <AnimatedNumber
+              value={liveTotal}
+              decimals={2}
+              prefix="$"
+              duration={380}
+            />
+          </strong>
         </div>
 
-        <button
+        <motion.button
           type="button"
           className="mb-btn mb-btn-accent mb-btn-lg detail-add"
           onClick={handleAddToCart}
-          disabled={!product.disponible}
+          disabled={!product.disponible || !esValida}
+          whileTap={{ scale: 0.98 }}
         >
           <Icon name="cart" size={19} />
-          {product.disponible ? "Agregar al carrito" : "No disponible"}
-        </button>
+
+          {!product.disponible
+            ? "No disponible"
+            : esValida
+              ? "Agregar al carrito"
+              : `Falta elegir ${grupoPendiente?.nombre}`}
+        </motion.button>
       </div>
     </div>
   );

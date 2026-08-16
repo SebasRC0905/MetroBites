@@ -1,22 +1,39 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { AnimatePresence, motion } from "framer-motion";
 import toast from "react-hot-toast";
 
 import Icon from "../../components/Icon";
 import EmptyState from "../../components/EmptyState";
+import AnimatedNumber from "../../components/AnimatedNumber";
 
 import { useCart } from "../../context/CartContext";
+import { useCurrency } from "../../context/CurrencyContext";
+
+import { itemVariants, listaVariants, resorte } from "../../lib/motion";
 
 import "./Cart.css";
 
 const API_URL = "http://localhost:3000";
 
+const MAXIMO_NOTAS = 140;
+
 function Cart() {
   const navigate = useNavigate();
 
-  const { items, total, removeItem, increaseQuantity, decreaseQuantity } =
-    useCart();
+  const {
+    items,
+    total,
+    totalUnidades,
+    removeItem,
+    increaseQuantity,
+    decreaseQuantity,
+    updateItem,
+  } = useCart();
 
-  const totalUnidades = items.reduce((acc, item) => acc + item.cantidad, 0);
+  const { equivalente } = useCurrency();
+
+  const [editandoNota, setEditandoNota] = useState(null);
 
   if (items.length === 0) {
     return (
@@ -56,75 +73,134 @@ function Cart() {
             <span>{totalUnidades} unidades</span>
           </div>
 
-          {items.map((item, index) => (
-            <article
-              key={`${item.producto_id}-${index}`}
-              className="cart-item mb-reveal"
-              style={{ "--i": index }}
-            >
-              <div className="cart-item-media">
-                {item.url_imagen ? (
-                  <img
-                    src={`${API_URL}${item.url_imagen}`}
-                    alt={item.nombre}
-                    loading="lazy"
-                  />
-                ) : (
-                  <Icon name="utensils" size={26} />
-                )}
-              </div>
-
-              <div className="cart-item-body">
-                <div className="cart-item-head">
-                  <h3>{item.nombre}</h3>
-
-                  <button
-                    type="button"
-                    className="cart-remove"
-                    aria-label={`Eliminar ${item.nombre}`}
-                    onClick={() => {
-                      removeItem(index);
-                      toast.success("Producto eliminado del carrito");
-                    }}
-                  >
-                    <Icon name="trash" size={17} />
-                  </button>
-                </div>
-
-                {item.personalizaciones.length > 0 && (
-                  <p className="cart-item-extras">
-                    {item.personalizaciones.map((extra) => extra.nombre).join(" · ")}
-                  </p>
-                )}
-
-                <div className="cart-item-foot">
-                  <div className="cart-stepper">
-                    <button
-                      type="button"
-                      aria-label="Quitar uno"
-                      onClick={() => decreaseQuantity(index)}
-                    >
-                      <Icon name="minus" size={16} strokeWidth={2.4} />
-                    </button>
-
-                    <strong>{item.cantidad}</strong>
-
-                    <button
-                      type="button"
-                      aria-label="Agregar uno"
-                      onClick={() => increaseQuantity(index)}
-                    >
-                      <Icon name="plus" size={16} strokeWidth={2.4} />
-                    </button>
+          <motion.div
+            variants={listaVariants}
+            initial="initial"
+            animate="animate"
+          >
+            <AnimatePresence mode="popLayout">
+              {items.map((item) => (
+                <motion.article
+                  key={item.uid}
+                  layout
+                  className="cart-item"
+                  variants={itemVariants}
+                  exit="exit"
+                >
+                  <div className="cart-item-media">
+                    {item.url_imagen ? (
+                      <img
+                        src={`${API_URL}${item.url_imagen}`}
+                        alt={item.nombre}
+                        loading="lazy"
+                      />
+                    ) : (
+                      <Icon name="utensils" size={26} />
+                    )}
                   </div>
 
-                  <span className="cart-item-price">
-                    ${item.subtotal.toFixed(2)}
-                  </span>
-                </div>
-              </div>
-            </article>
-          ))}
+                  <div className="cart-item-body">
+                    <div className="cart-item-head">
+                      <h3>{item.nombre}</h3>
+
+                      <button
+                        type="button"
+                        className="cart-remove"
+                        aria-label={`Eliminar ${item.nombre}`}
+                        onClick={() => {
+                          removeItem(item.uid);
+                          toast.success("Producto eliminado del carrito");
+                        }}
+                      >
+                        <Icon name="trash" size={17} />
+                      </button>
+                    </div>
+
+                    {item.personalizaciones.length > 0 && (
+                      <ul className="cart-item-extras">
+                        {item.personalizaciones.map((extra) => (
+                          <li key={extra.id}>
+                            {extra.nombre}
+
+                            {Number(extra.precio_adicional) > 0 && (
+                              <b>+${Number(extra.precio_adicional).toFixed(2)}</b>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+
+                    {editandoNota === item.uid ? (
+                      <div className="cart-item-note-edit">
+                        <textarea
+                          className="mb-textarea"
+                          rows={2}
+                          autoFocus
+                          maxLength={MAXIMO_NOTAS}
+                          placeholder="Ej. sin cebolla, salsa aparte…"
+                          defaultValue={item.notas}
+                          onBlur={(evento) => {
+                            updateItem(item.uid, {
+                              notas: evento.target.value.trim(),
+                            });
+
+                            setEditandoNota(null);
+                          }}
+                        />
+
+                        <small>Se guarda al salir del campo</small>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        className={`cart-item-note ${item.notas ? "has-note" : ""}`}
+                        onClick={() => setEditandoNota(item.uid)}
+                      >
+                        <Icon name={item.notas ? "edit" : "plus"} size={13} />
+                        {item.notas || "Agregar nota para la cocina"}
+                      </button>
+                    )}
+
+                    <div className="cart-item-foot">
+                      <div className="cart-stepper">
+                        <button
+                          type="button"
+                          aria-label="Quitar uno"
+                          onClick={() => decreaseQuantity(item.uid)}
+                        >
+                          <Icon name="minus" size={16} strokeWidth={2.4} />
+                        </button>
+
+                        <AnimatePresence mode="popLayout">
+                          <motion.strong
+                            key={item.cantidad}
+                            initial={{ y: -10, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            exit={{ y: 10, opacity: 0 }}
+                            transition={resorte}
+                          >
+                            {item.cantidad}
+                          </motion.strong>
+                        </AnimatePresence>
+
+                        <button
+                          type="button"
+                          aria-label="Agregar uno"
+                          onClick={() => increaseQuantity(item.uid)}
+                        >
+                          <Icon name="plus" size={16} strokeWidth={2.4} />
+                        </button>
+                      </div>
+
+                      <span className="cart-item-price">
+                        ${item.subtotal.toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+                </motion.article>
+              ))}
+            </AnimatePresence>
+          </motion.div>
         </section>
 
         <aside className="cart-summary">
@@ -144,8 +220,17 @@ function Cart() {
 
           <div className="cart-summary-total">
             <span>Total a pagar</span>
-            <strong>${total.toFixed(2)}</strong>
+
+            <strong>
+              <AnimatedNumber value={total} decimals={2} prefix="$" />
+            </strong>
           </div>
+
+          {equivalente(total) && (
+            <p className="cart-summary-currency">
+              {equivalente(total)} al tipo de cambio de hoy
+            </p>
+          )}
 
           <button
             type="button"
