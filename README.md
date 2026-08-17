@@ -131,6 +131,7 @@ mysql -u root -p --default-character-set=utf8mb4 metrobites_db < database/migrat
 mysql -u root -p --default-character-set=utf8mb4 metrobites_db < database/migrations/002_estados_pedido_y_personalizacion.sql
 mysql -u root -p --default-character-set=utf8mb4 metrobites_db < database/migrations/003_perfil_alumno.sql
 mysql -u root -p --default-character-set=utf8mb4 metrobites_db < database/migrations/004_reparar_acentos.sql
+mysql -u root -p --default-character-set=utf8mb4 metrobites_db < database/migrations/005_catalogo_ampliado.sql
 ```
 
 * **002** agrega el ciclo de vida completo del pedido, la bitácora de
@@ -139,6 +140,8 @@ mysql -u root -p --default-character-set=utf8mb4 metrobites_db < database/migrat
   el catálogo de preferencias dietéticas.
 * **004** repara los acentos si alguna migración se importó sin
   `--default-character-set=utf8mb4` (ver abajo).
+* **005** agrega 16 productos nuevos con foto y completa las fotos de
+  los que ya existían.
 
 ---
 
@@ -343,7 +346,7 @@ MetroBites
 
 ## Productos
 
-* Listado de productos
+* Menú de 23 productos con foto, repartidos en cinco categorías
 * Categorías
 * Personalización por tipo de comida (grupos de opción única o
   múltiple, con mínimos y máximos, más notas para la cocina)
@@ -379,6 +382,14 @@ cancelar o rechazar exige un motivo que el alumno alcanza a ver.
 
 Ninguna requiere llave ni pago. El detalle de cada endpoint está en
 `backend/API_DOCUMENTATION.md`.
+
+## Fotos del menú
+
+Las imágenes de `backend/uploads` vienen de Wikimedia Commons con
+licencias libres, recortadas a 880 × 605 px (la proporción de la
+tarjeta del menú). El autor y la licencia de cada una están en
+`docs/creditos-imagenes.md`: si cambias una foto, actualiza también esa
+tabla, porque las licencias CC BY y CC BY-SA piden dar crédito.
 
 ## Seguridad de la API
 
