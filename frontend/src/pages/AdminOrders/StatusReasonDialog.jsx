@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 
 import Icon from "../../components/Icon";
 
-import { backdropVariants, modalVariants } from "../../lib/motion";
+import { modalVariants } from "../../lib/motion";
 
 const MOTIVOS_SUGERIDOS = {
   cancelado: [
@@ -54,6 +54,8 @@ function FormularioMotivo({
 
   const confirmar = () => {
     onConfirmar({
+      pedido,
+      accion,
       nota: nota.trim() || undefined,
       tiempoEstimado: tiempo === "" ? undefined : Number(tiempo),
     });
@@ -62,10 +64,8 @@ function FormularioMotivo({
   return (
     <motion.div
       className="mb-modal-backdrop"
-      variants={backdropVariants}
-      initial="initial"
-      animate="animate"
-      exit="exit"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
       role="presentation"
       onClick={(evento) => {
         if (evento.target === evento.currentTarget) {
@@ -78,7 +78,6 @@ function FormularioMotivo({
         variants={modalVariants}
         initial="initial"
         animate="animate"
-        exit="exit"
         role="dialog"
         aria-modal="true"
         aria-label={`Pasar el pedido a ${accion.etiqueta}`}
@@ -186,19 +185,25 @@ function StatusReasonDialog({
   onConfirmar,
   onCerrar,
 }) {
+  /*
+   Sin `AnimatePresence` a propósito: con animación de salida, el
+   diálogo del pedido anterior seguía montado unos instantes con sus
+   props congeladas, y un clic en ese sobrante mandaba la transición
+   del pedido equivocado. Entra animado y desaparece de inmediato.
+  */
+  if (!accion) {
+    return null;
+  }
+
   return (
-    <AnimatePresence>
-      {accion && (
-        <FormularioMotivo
-          key={`${pedido?.id}-${accion.estado}`}
-          accion={accion}
-          pedido={pedido}
-          guardando={guardando}
-          onConfirmar={onConfirmar}
-          onCerrar={onCerrar}
-        />
-      )}
-    </AnimatePresence>
+    <FormularioMotivo
+      key={`${pedido?.id}-${accion.estado}`}
+      accion={accion}
+      pedido={pedido}
+      guardando={guardando}
+      onConfirmar={onConfirmar}
+      onCerrar={onCerrar}
+    />
   );
 }
 

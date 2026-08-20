@@ -62,13 +62,21 @@ export const itemVariants = {
   },
 };
 
-/* Tarjetas que se reordenan entre columnas del tablero. */
+/*
+ Tarjetas que se reordenan entre columnas del tablero.
+
+ La salida apaga `pointerEvents`: mientras un pedido cambia de columna
+ conviven un instante la tarjeta que sale y la que entra, y sin esto se
+ podía hacer clic en la que ya iba de salida, mandando una transición
+ con datos viejos.
+*/
 export const tarjetaTableroVariants = {
   initial: { opacity: 0, y: 12, scale: 0.98 },
   animate: { opacity: 1, y: 0, scale: 1, transition: resorteSuave },
   exit: {
     opacity: 0,
     scale: 0.94,
+    pointerEvents: "none",
     transition: { duration: 0.16, ease: easeSoft },
   },
 };

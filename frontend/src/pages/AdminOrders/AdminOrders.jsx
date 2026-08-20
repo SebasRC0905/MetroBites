@@ -94,6 +94,58 @@ function AdminOrders() {
 
   const { conectado } = useOrderEvents(alRecibirEvento);
 
+  /**
+   * Estado real del pedido según la última respuesta del servidor.
+   *
+   * Se consulta a la caché y no a la variable `pedidos` del render
+   * porque un botón que quedó montado de un render anterior traería
+   * datos viejos, y se acabaría mandando una transición ya aplicada.
+   */
+  const estadoActualDe = useCallback(
+    (pedidoId) => {
+      const consultas = clienteConsultas.getQueriesData({
+        queryKey: ["pedidos-admin"],
+      });
+
+      for (const [, respuesta] of consultas) {
+        const encontrado = respuesta?.data?.find(
+          (item) => item.id === pedidoId,
+        );
+
+        if (encontrado) {
+          return encontrado.estado;
+        }
+      }
+
+      return null;
+    },
+    [clienteConsultas],
+  );
+
+  /**
+   * Comprueba que la transición siga teniendo sentido antes de mandarla.
+   * Devuelve `true` si se puede continuar.
+   */
+  const transicionSigueValida = (pedido, accion) => {
+    const estadoAhora = estadoActualDe(pedido.id);
+
+    if (!estadoAhora || estadoAhora === pedido.estado) {
+      return true;
+    }
+
+    if (estadoAhora === accion.estado) {
+      toast(`El pedido #${pedido.id} ya estaba en ${obtener(accion.estado).etiqueta}`);
+    } else {
+      toast.error(
+        `El pedido #${pedido.id} cambió a ${obtener(estadoAhora).etiqueta}. Revisa el tablero.`,
+      );
+    }
+
+    clienteConsultas.invalidateQueries({ queryKey: ["pedidos-admin"] });
+
+    return false;
+  };
+
   const mutacion = useMutation({
     mutationFn: ({ pedido, accion, datos }) =>
       adminOrderService.updateOrderStatus(pedido.id, {
@@ -161,6 +213,16 @@ function AdminOrders() {
    * directo desde la tarjeta.
    */
   const manejarAccion = (pedido, accion) => {
+    // Un segundo clic mientras la primera petición sigue en vuelo
+    // terminaría mandando la misma transición dos veces.
+    if (mutacion.isPending) {
+      return;
+    }
+
+    if (!transicionSigueValida(pedido, accion)) {
+      return;
+    }
+
     const pideDatos =
       accion.requiereMotivo ||
       accion.estado === "confirmado" ||
@@ -416,16 +478,20 @@ function AdminOrders() {
         pedido={accionPendiente?.pedido}
         guardando={mutacion.isPending}
         onCerrar={() => setAccionPendiente(null)}
-        onConfirmar={(datos) => {
+        onConfirmar={({ pedido, accion, ...datos }) => {
+          if (mutacion.isPending) {
+            return;
+          }
+
+          if (!transicionSigueValida(pedido, accion)) {
+            setAccionPendiente(null);
+
+            return;
+          }
+
           mutacion.mutate(
-            {
-              pedido: accionPendiente.pedido,
-              accion: accionPendiente.accion,
-              datos,
-            },
-            {
-              onSuccess: () => setAccionPendiente(null),
-            },
+            { pedido, accion, datos },
+            { onSuccess: () => setAccionPendiente(null) },
           );
         }}
       />

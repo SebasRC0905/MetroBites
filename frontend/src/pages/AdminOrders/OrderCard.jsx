@@ -37,6 +37,12 @@ const pagoTono = {
 /**
  * Tarjeta de un pedido dentro del tablero.
  *
+ * Usa `layout` (reacomodo suave) pero NO `layoutId`: cuando un pedido
+ * cambia de columna existen por un instante la tarjeta que sale y la
+ * que entra, y compartir el mismo `layoutId` dejaba las dos montadas,
+ * de modo que se podía hacer clic en la vieja y mandar una transición
+ * que ya se había aplicado.
+ *
  * Los botones de acción no están escritos a mano: salen de las
  * transiciones que el backend declara para el estado actual y el rol
  * de quien está viendo el tablero.
@@ -57,7 +63,6 @@ function OrderCard({ pedido, actualizando, onAccion, onVerDetalle }) {
   return (
     <motion.article
       layout
-      layoutId={`pedido-${pedido.id}`}
       className={`board-card ${demorado ? "is-late" : ""}`}
       variants={tarjetaTableroVariants}
       initial="initial"
